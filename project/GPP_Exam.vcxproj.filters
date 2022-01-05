@@ -3,12 +3,38 @@
   <ItemGroup>
     <ClCompile Include="Plugin.cpp" />
     <ClCompile Include="stdafx.cpp" />
-    <ClCompile Include="FiniteStateMachine.cpp" />
+    <ClCompile Include="Character.cpp">
+      <Filter>GOAP</Filter>
+    </ClCompile>
+    <ClCompile Include="FiniteStateMachine.cpp">
+      <Filter>GOAP</Filter>
+    </ClCompile>
+    <ClCompile Include="ConditionsAndActions.cpp">
+      <Filter>GOAP</Filter>
+    </ClCompile>
+    <ClCompile Include="Planner.cpp">
+      <Filter>GOAP</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Plugin.h" />
     <ClInclude Include="stdafx.h" />
-    <ClInclude Include="ConditionsAndActions.h" />
-    <ClInclude Include="FiniteStateMachine.h" />
+    <ClInclude Include="Character.h">
+      <Filter>GOAP</Filter>
+    </ClInclude>
+    <ClInclude Include="FiniteStateMachine.h">
+      <Filter>GOAP</Filter>
+    </ClInclude>
+    <ClInclude Include="ConditionsAndActions.h">
+      <Filter>GOAP</Filter>
+    </ClInclude>
+    <ClInclude Include="Planner.h">
+      <Filter>GOAP</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="GOAP">
+      <UniqueIdentifier>{bbab6ac7-f8b9-4920-9f09-b701f0c56e51}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
 </Project>

@@ -182,13 +182,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Character.h" />
     <ClInclude Include="ConditionsAndActions.h" />
     <ClInclude Include="FiniteStateMachine.h" />
+    <ClInclude Include="Planner.h" />
     <ClInclude Include="Plugin.h" />
     <ClInclude Include="stdafx.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Character.cpp" />
+    <ClCompile Include="ConditionsAndActions.cpp" />
     <ClCompile Include="FiniteStateMachine.cpp" />
+    <ClCompile Include="Planner.cpp" />
     <ClCompile Include="Plugin.cpp" />
     <ClCompile Include="stdafx.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
