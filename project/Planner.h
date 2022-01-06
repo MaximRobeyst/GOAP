@@ -1,4 +1,5 @@
 #pragma once
+#include <map>
 #include <vector>
 
 class Character;
@@ -14,19 +15,30 @@ class Action;
  */
 class Planner
 {
+private:
+	struct PlanNode
+	{
+		PlanNode() = default;
+		PlanNode(std::shared_ptr<PlanNode> pParent, float runningCost, std::map<std::string, bool> state, Action* action);
+
+		bool operator< (const PlanNode& plannode);
+		
+		std::shared_ptr<PlanNode> pParent{};
+		float runningCost{};
+		std::map<std::string, bool> state;
+		Action* action{};
+	};
+	
 public:
 	Planner(Character* pCharacter, std::pair<std::string, bool> goal);
 	~Planner();
 
-	std::vector<Action*> GetPlan();
+	std::vector<Action*> GetPlan(const std::vector<Action*>& availableActions, const std::map<std::string, bool>& worldConditions, const std::map<std::string, bool>& goal);
 	bool IsPlanValid(Action* pAction);
 	
 private:
-	struct PlanNode
-	{
-		float runningCost{};
-		Action* action{};
-	};
+	bool BuildGraph(std::shared_ptr<PlanNode> startNode, std::vector<std::shared_ptr<PlanNode>>& leaves, const std::vector<Action*>& usableActions ,const map<std::string, bool>& goal);	// all possible plans the character can generate
+	bool ConditionMatch(const std::map<std::string, bool>& conditions, const std::map<std::string, bool>& preconditions);
 	
 };
 
