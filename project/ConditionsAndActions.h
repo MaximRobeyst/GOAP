@@ -14,6 +14,10 @@ public:
 	virtual bool IsDone() = 0;								// is the action done executing
 	virtual bool RequiresInRange() const = 0;				// does the action need to be in range if so the agent will go the to moveto state first and then execute
 
+	std::map<std::string, bool> GetPreconditions();
+	std::map<std::string, bool> GetEffects();
+	float GetCost();
+	
 private:
 	std::map<std::string, bool> m_Preconditions;	// conditions the world has to be in for the action to be executed
 	std::map<std::string, bool> m_Effects;			// the effect this action will have on the world
