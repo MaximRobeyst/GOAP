@@ -1,4 +1,5 @@
 #pragma once
+#include "Character.h"
 #include "IExamPlugin.h"
 #include "Exam_HelperStructs.h"
 
@@ -20,6 +21,8 @@ public:
 
 	SteeringPlugin_Output UpdateSteering(float dt) override;
 	void Render(float dt) const override;
+
+	Character* m_pCharacter;
 
 private:
 	//Interface, used to request data from/perform actions with the AI Framework

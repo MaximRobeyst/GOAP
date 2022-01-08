@@ -2,16 +2,19 @@
 #include "ConditionsAndActions.h"
 class Planner;
 class FiniteStateMachine;
+class Blackboard;
 
 class Character final
 {
 public:
-	Character();
+	Character(Blackboard* pBlackboard);
 	~Character();
 
 	void Update(float dt);
 
 	void AddAction(Action* action);
+
+	std::vector<Action*> GetPlan() const;
 	
 private:
 	void MakeFSM();
@@ -21,5 +24,10 @@ private:
 
 	std::vector<Action*> m_pActions;
 	std::vector<Action*> m_pCurrentPlan;
+	Action* m_pCurrentAction;
+	Blackboard* m_pBlackboard{nullptr};
+
+	std::map<std::string, bool> m_WorldConditions{};
+	std::map<std::string, bool> m_Goals{};
 };
 

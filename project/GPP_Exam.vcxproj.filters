@@ -31,6 +31,9 @@
     <ClInclude Include="Planner.h">
       <Filter>GOAP</Filter>
     </ClInclude>
+    <ClInclude Include="Blackboard.h">
+      <Filter>GOAP</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="GOAP">

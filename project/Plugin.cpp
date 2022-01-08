@@ -2,6 +2,7 @@
 #include "Plugin.h"
 #include "IExamInterface.h"
 #include "Planner.h"
+#include "Blackboard.h"
 
 //Called only once, during initialization
 void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
@@ -16,6 +17,11 @@ void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
 	info.Student_FirstName = "Maxim";
 	info.Student_LastName = "Robeyst";
 	info.Student_Class = "2DAE06";
+
+	Blackboard* pBlackboard = new Blackboard();
+	
+	m_pCharacter = new Character(pBlackboard);
+
 }
 
 //Called only once
@@ -28,6 +34,7 @@ void Plugin::DllInit()
 void Plugin::DllShutdown()
 {
 	//Called when the plugin gets unloaded
+	delete m_pCharacter;
 }
 
 //Called only once, during initialization
@@ -45,6 +52,7 @@ void Plugin::InitGameDebugParams(GameDebugParams& params)
 //(=Use only for Debug Purposes)
 void Plugin::Update(float dt)
 {
+	
 	//Demo Event Code
 	//In the end your AI should be able to walk around without external input
 	if (m_pInterface->Input_IsMouseButtonUp(Elite::InputMouseButton::eLeft))
@@ -82,6 +90,14 @@ void Plugin::Update(float dt)
 	{
 		m_CanRun = false;
 	}
+	
+	m_pCharacter->Update(0.0f);
+	auto characterplan = m_pCharacter->GetPlan();
+	for_each(characterplan.begin(), characterplan.end(), [](Action* action)
+		{
+			std::cout << action->GetName() << " -> ";
+		});
+	std::cout << std::endl;
 }
 
 //Update

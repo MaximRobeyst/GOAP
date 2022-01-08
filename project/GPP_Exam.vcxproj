@@ -182,6 +182,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Blackboard.h" />
     <ClInclude Include="Character.h" />
     <ClInclude Include="ConditionsAndActions.h" />
     <ClInclude Include="FiniteStateMachine.h" />
