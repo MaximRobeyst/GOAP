@@ -3,6 +3,7 @@
 #include <string>
 #include <vector>
 
+class Blackboard;
 class Character;
 class Action;
 
@@ -35,8 +36,8 @@ public:
 		Action* action{};
 	};
 
-	std::vector<Action*> GetPlan(const std::vector<Action*>& availableActions, const std::map<std::string, bool>& worldConditions, const std::map<std::string, bool>& goal);
-	bool IsPlanValid(Action* action, const std::map<std::string, bool>& worldConditions);
+	std::vector<Action*> GetPlan(const std::vector<Action*>& availableActions, const std::map<std::string, bool>& worldConditions, const std::map<std::string, bool>& goal, Blackboard* pBlackboard);
+	bool IsPlanValid(Action* action, const std::map<std::string, bool>& worldConditions, Blackboard* pBlackboard);
 
 private:
 	bool BuildGraph(PlanNode* startNode, std::vector<PlanNode*>& leaves, const std::vector<Action*>& usableActions, const std::map<std::string, bool>& goal);	// all possible plans the character can generate

@@ -18,10 +18,11 @@ void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
 	info.Student_LastName = "Robeyst";
 	info.Student_Class = "2DAE06";
 
-	Blackboard* pBlackboard = new Blackboard();
+	m_pBlackboard = CreateBlackboard();
 	
-	m_pCharacter = new Character(pBlackboard);
+	m_pCharacter = new Character(m_pBlackboard);
 
+	m_pBlackboard->ChangeData("Character", m_pCharacter);
 }
 
 //Called only once
@@ -35,6 +36,7 @@ void Plugin::DllShutdown()
 {
 	//Called when the plugin gets unloaded
 	delete m_pCharacter;
+	delete m_pBlackboard;
 }
 
 //Called only once, during initialization
@@ -91,13 +93,7 @@ void Plugin::Update(float dt)
 		m_CanRun = false;
 	}
 	
-	m_pCharacter->Update(0.0f);
-	auto characterplan = m_pCharacter->GetPlan();
-	for_each(characterplan.begin(), characterplan.end(), [](Action* action)
-		{
-			std::cout << action->GetName() << " -> ";
-		});
-	std::cout << std::endl;
+	//m_pCharacter->Update(0.0f);
 }
 
 //Update
@@ -107,13 +103,19 @@ SteeringPlugin_Output Plugin::UpdateSteering(float dt)
 	auto steering = SteeringPlugin_Output();
 
 	//Use the Interface (IAssignmentInterface) to 'interface' with the AI_Framework
-	auto agentInfo = m_pInterface->Agent_GetInfo();
+	m_pCharacter->SetAgentInfo(m_pInterface->Agent_GetInfo());
+	m_pCharacter->Update(dt);
 
 	auto nextTargetPos = m_Target; //To start you can use the mouse position as guidance
 
 	auto vHousesInFOV = GetHousesInFOV();//uses m_pInterface->Fov_GetHouseByIndex(...)
 	auto vEntitiesInFOV = GetEntitiesInFOV(); //uses m_pInterface->Fov_GetEntityByIndex(...)
 
+	if (vHousesInFOV.size() > 0)
+		m_pCharacter->ChangeCharacterState("HouseInFov", true);
+	else
+		m_pCharacter->ChangeCharacterState("HouseInFov", false);
+	
 	for (auto& e : vEntitiesInFOV)
 	{
 		if (e.Type == eEntityType::PURGEZONE)
@@ -121,6 +123,25 @@ SteeringPlugin_Output Plugin::UpdateSteering(float dt)
 			PurgeZoneInfo zoneInfo;
 			m_pInterface->PurgeZone_GetInfo(e, zoneInfo);
 			std::cout << "Purge Zone in FOV:" << e.Location.x << ", "<< e.Location.y <<  " ---EntityHash: " << e.EntityHash << "---Radius: "<< zoneInfo.Radius << std::endl;
+		}
+		if(e.Type == eEntityType::ENEMY)
+		{
+			m_pCharacter->ChangeCharacterState("EnemiesInFov", true);
+			EnemyInfo closestEnemy;
+			if (!m_pBlackboard->GetData("ClosestEnemy", closestEnemy))
+			{
+				
+				m_pInterface->Enemy_GetInfo(e, closestEnemy);
+				m_pBlackboard->ChangeData("ClosestEnemy",  closestEnemy);
+				break;
+			}
+			
+			if(Elite::DistanceSquared(e.Location, m_pCharacter->GetAgentInfo().Position) < Elite::DistanceSquared(e.Location, m_pCharacter->GetAgentInfo().Position) 
+				|| closestEnemy.Location == Elite::Vector2{0,0})
+			{
+				m_pInterface->Enemy_GetInfo(e, closestEnemy);
+				m_pBlackboard->ChangeData("ClosestEnemy", closestEnemy);
+			}
 		}
 	}
 	
@@ -155,15 +176,17 @@ SteeringPlugin_Output Plugin::UpdateSteering(float dt)
 		m_pInterface->Inventory_RemoveItem(0);
 	}
 
-	//Simple Seek Behaviour (towards Target)
-	steering.LinearVelocity = nextTargetPos - agentInfo.Position; //Desired Velocity
-	steering.LinearVelocity.Normalize(); //Normalize Desired Velocity
-	steering.LinearVelocity *= agentInfo.MaxLinearSpeed; //Rescale to Max Speed
+	steering.LinearVelocity = m_pCharacter->GetAgentInfo().LinearVelocity;
 
-	if (Distance(nextTargetPos, agentInfo.Position) < 2.f)
-	{
-		steering.LinearVelocity = Elite::ZeroVector2;
-	}
+	//Simple Seek Behaviour (towards Target)
+	//steering.LinearVelocity = nextTargetPos - m_pCharacter->GetAgentInfo().Position; //Desired Velocity
+	//steering.LinearVelocity.Normalize(); //Normalize Desired Velocity
+	//steering.LinearVelocity *= m_pCharacter->GetAgentInfo().MaxLinearSpeed; //Rescale to Max Speed
+
+	//if (Distance(nextTargetPos, m_pCharacter->GetAgentInfo().Position) < 2.f)
+	//{
+	//	steering.LinearVelocity = Elite::ZeroVector2;
+	//}
 
 	//steering.AngularVelocity = m_AngSpeed; //Rotate your character to inspect the world while walking
 	steering.AutoOrient = true; //Setting AutoOrientate to TRue overrides the AngularVelocity
@@ -185,6 +208,7 @@ void Plugin::Render(float dt) const
 {
 	//This Render function should only contain calls to Interface->Draw_... functions
 	m_pInterface->Draw_SolidCircle(m_Target, .7f, { 0,0 }, { 1, 0, 0 });
+	m_pInterface->Draw_Direction(m_pCharacter->GetAgentInfo().Position, m_pCharacter->GetAgentInfo().LinearVelocity.GetNormalized(), m_pCharacter->GetAgentInfo().LinearVelocity.Magnitude(), { 1,0,0 });
 }
 
 vector<HouseInfo> Plugin::GetHousesInFOV() const
@@ -221,6 +245,16 @@ vector<EntityInfo> Plugin::GetEntitiesInFOV() const
 
 		break;
 	}
-
+	
 	return vEntitiesInFOV;
+}
+
+Blackboard* Plugin::CreateBlackboard() const
+{
+	Blackboard* pBlackboard = new Blackboard();
+	pBlackboard->AddData("Character", static_cast<Character*>(nullptr));
+	pBlackboard->AddData("ClosestEnemy", EnemyInfo{});
+	pBlackboard->AddData("ClosestHouse", HouseInfo{});
+
+	return pBlackboard;
 }

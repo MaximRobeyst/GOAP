@@ -22,13 +22,12 @@ public:
 	SteeringPlugin_Output UpdateSteering(float dt) override;
 	void Render(float dt) const override;
 
-	Character* m_pCharacter;
-
 private:
 	//Interface, used to request data from/perform actions with the AI Framework
 	IExamInterface* m_pInterface = nullptr;
 	vector<HouseInfo> GetHousesInFOV() const;
 	vector<EntityInfo> GetEntitiesInFOV() const;
+	Blackboard* CreateBlackboard() const;
 
 	Elite::Vector2 m_Target = {};
 	bool m_CanRun = false; //Demo purpose
@@ -36,6 +35,10 @@ private:
 	bool m_UseItem = false; //Demo purpose
 	bool m_RemoveItem = false; //Demo purpose
 	float m_AngSpeed = 0.f; //Demo purpose
+
+
+	Character* m_pCharacter;
+	Blackboard* m_pBlackboard{ nullptr };
 };
 
 //ENTRY

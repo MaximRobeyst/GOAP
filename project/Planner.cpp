@@ -22,13 +22,13 @@ bool Planner::PlanNode::operator<(const PlanNode& plannode) const
 	return runningCost < plannode.runningCost;
 }
 
-std::vector<Action*> Planner::GetPlan(const std::vector<Action*>& availableActions, const std::map<std::string, bool>& worldConditions, const std::map<std::string, bool>& goal)
+std::vector<Action*> Planner::GetPlan(const std::vector<Action*>& availableActions, const std::map<std::string, bool>& worldConditions, const std::map<std::string, bool>& goal, Blackboard* pBlackboard)
 {
 	// Check what precedural preconditions
 	std::vector<Action*> usableActions{};
 
 	for (auto iter = availableActions.begin(); iter < availableActions.end(); ++iter)
-		if ((*iter)->CheckProceduralPreconditions())
+		if ((*iter)->CheckProceduralPreconditions(pBlackboard))
 			usableActions.push_back(*iter);
 
 	std::vector<PlanNode*> leaves{};
@@ -65,9 +65,9 @@ std::vector<Action*> Planner::GetPlan(const std::vector<Action*>& availableActio
 	return result;
 }
 
-bool Planner::IsPlanValid(Action* action, const std::map<std::string, bool>& worldConditions)
+bool Planner::IsPlanValid(Action* action, const std::map<std::string, bool>& worldConditions, Blackboard* pBlackboard)
 {
-	return (action->CheckProceduralPreconditions() && ConditionMatch(worldConditions, action->GetPreconditions()));
+	return (action->CheckProceduralPreconditions(pBlackboard) && ConditionMatch(worldConditions, action->GetPreconditions()));
 }
 
 bool Planner::BuildGraph(PlanNode* startNode, std::vector<PlanNode*>& leaves, const std::vector<Action*>& usableActions, const std::map<std::string, bool>& goal)
@@ -108,6 +108,12 @@ bool Planner::ConditionMatch(const std::map<std::string, bool>& conditions,
 	bool allMatch = true;
 	for (auto t : preconditions)
 	{
+		//if(!std::all_of(conditions.begin(), conditions.end(), [t](auto s)
+		//	{
+		//		return t == s;
+		//	}))
+		//	allMatch = false;
+		
 		bool match = false;
 		for (auto s : conditions)
 		{
