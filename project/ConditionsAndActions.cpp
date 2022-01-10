@@ -32,6 +32,7 @@ FleeFromEnemy::FleeFromEnemy()
 {
 	m_Preconditions["HasWeapon"] = false;
 	m_Preconditions["EnemiesInFov"] = true;
+	m_Preconditions["HouseInFov"] = false;
 
 	m_Effects["Survive"] = true;
 
@@ -74,6 +75,11 @@ bool FleeFromEnemy::IsDone()
 
 bool FleeFromEnemy::RequiresInRange() const
 {
+	return false;
+}
+
+bool FleeFromEnemy::IsInRange(Blackboard* pBlackboard) const
+{
 	return true;
 }
 
@@ -111,6 +117,11 @@ bool ShootAtEnemy::IsDone()
 bool ShootAtEnemy::RequiresInRange() const
 {
 	return false;
+}
+
+bool ShootAtEnemy::IsInRange(Blackboard* pBlackboard) const
+{
+	return true;
 }
 
 SearchForItems::SearchForItems()
@@ -163,12 +174,18 @@ bool SearchForItems::RequiresInRange() const
 	return false;
 }
 
+bool SearchForItems::IsInRange(Blackboard* pBlackboard) const
+{
+	return true;
+}
+
 EnterHouse::EnterHouse()
 {
 	m_Preconditions["HouseInFov"] = true;
+	m_Preconditions["EnemiesInFov"] = true;
+	m_Preconditions["HasWeapon"] = false;
 
 	m_Effects["Survive"] = true;
-	m_Effects["HasItems"] = true;
 
 	m_Cost = 1.f;
 }
@@ -209,4 +226,17 @@ bool EnterHouse::IsDone()
 bool EnterHouse::RequiresInRange() const
 {
 	return true;
+}
+
+bool EnterHouse::IsInRange(Blackboard* pBlackboard) const
+{
+	Character* pCharacter;
+	pBlackboard->GetData("Character", pCharacter);
+	HouseInfo houseInfo;
+	pBlackboard->GetData("ClosestHouse", houseInfo);
+
+	if(Elite::DistanceSquared(pCharacter->GetAgentInfo().Position, houseInfo.Center) < (m_Range * m_Range))
+		std::cout << "Character is in range" << std::endl;
+	return Elite::DistanceSquared(pCharacter->GetAgentInfo().Position, houseInfo.Center) < (m_Range * m_Range);
+
 }

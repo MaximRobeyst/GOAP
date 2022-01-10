@@ -112,9 +112,15 @@ SteeringPlugin_Output Plugin::UpdateSteering(float dt)
 	auto vEntitiesInFOV = GetEntitiesInFOV(); //uses m_pInterface->Fov_GetEntityByIndex(...)
 
 	if (vHousesInFOV.size() > 0)
+	{
 		m_pCharacter->ChangeCharacterState("HouseInFov", true);
+		m_pBlackboard->ChangeData("ClosestHouse", vHousesInFOV[0]);
+	}
 	else
+	{
 		m_pCharacter->ChangeCharacterState("HouseInFov", false);
+		m_pBlackboard->ChangeData("ClosestHouse", HouseInfo{});
+	}
 	
 	for (auto& e : vEntitiesInFOV)
 	{
@@ -255,6 +261,7 @@ Blackboard* Plugin::CreateBlackboard() const
 	pBlackboard->AddData("Character", static_cast<Character*>(nullptr));
 	pBlackboard->AddData("ClosestEnemy", EnemyInfo{});
 	pBlackboard->AddData("ClosestHouse", HouseInfo{});
+	pBlackboard->AddData("Interface", m_pInterface);
 
 	return pBlackboard;
 }

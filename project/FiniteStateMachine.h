@@ -2,13 +2,20 @@
 #include <map>
 #include <vector>
 
+#include "Blackboard.h"
+#include "ConditionsAndActions.h"
+#include "Planner.h"
+
+class Character;
+
 class FSMState
 {
 public:
 	FSMState() = default;
 	virtual ~FSMState() = default;
 
-	virtual void Update(float deltaTime) {};
+	virtual void OnEnter() {};
+	virtual void Update(float deltaTime, Blackboard* pBlackboard) {};
 };
 
 class FSMTransition
@@ -17,7 +24,7 @@ public:
 	FSMTransition() = default;
 	virtual ~FSMTransition() = default;
 
-	virtual bool ToTransition() const = 0;
+	virtual bool ToTransition(Blackboard* pBlackboard) const = 0;
 };
 
 class FiniteStateMachine final
@@ -27,7 +34,7 @@ public:
 	~FiniteStateMachine();
 
 	void AddTransition(FSMState* startState, FSMState* toState, FSMTransition* transition);
-	void Update(float deltaTime);
+	void Update(float deltaTime, Blackboard* pBlackboard);
 private:
 	void ChangeState(FSMState* newState);
 
@@ -36,5 +43,39 @@ private:
 
 	std::map<FSMState*, Transitions> m_Transitions;
 	FSMState* m_pCurrentState;
+};
+
+class ActionState : public FSMState
+{
+public:
+	ActionState(Character* pCharacter);
+	void Update(float deltaTime, Blackboard* pBlackboard) override;
+	
+	Action* GetCurrentAction();
+private:
+	Character* m_pCharacter;
+	Planner* m_pPlanner;
+
+	std::vector<Action*> m_pCurrentPlan;
+	Action* m_pCurrentAction;
+};
+
+class MoveState : public FSMState
+{
+public:
+	void OnEnter() override;
+	void Update(float deltaTime, Blackboard* pBlackboard) override;
+};
+
+class ToMoveTransition : public FSMTransition
+{
+public:
+	bool ToTransition(Blackboard* pBlackboard) const override;
+};
+
+class ToActionTransition : public FSMTransition
+{
+public:
+	bool ToTransition(Blackboard* pBlackboard) const override;
 };
 

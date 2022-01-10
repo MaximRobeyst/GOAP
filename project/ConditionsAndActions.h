@@ -14,9 +14,13 @@ public:
 	
 	virtual bool CheckProceduralPreconditions(Blackboard* pBlackboard) const = 0;	// Procedural conditions the character has to suffice for the action to execute
 	virtual bool ExecuteAction(Blackboard* pBlackboard) = 0;						// The action that is executing
+	
 	virtual bool IsDone() = 0;								// is the action done executing
 	virtual bool RequiresInRange() const = 0;				// does the action need to be in range if so the agent will go the to moveto state first and then execute
-
+	virtual bool IsInRange(Blackboard* pBlackboard) const = 0;
+	
+	virtual std::string GetName() const = 0;
+	
 	std::map<std::string, bool> GetPreconditions();
 	std::map<std::string, bool> GetEffects();
 	float GetCost();
@@ -38,6 +42,8 @@ public:
 	bool ExecuteAction(Blackboard* pBlackboard) override;
 	bool IsDone() override;
 	bool RequiresInRange() const override;
+	bool IsInRange(Blackboard* pBlackboard) const override;
+	virtual std::string GetName() const override { return "Flee From Enemy"; };
 };
 
 class ShootAtEnemy final :public Action
@@ -50,6 +56,8 @@ public:
 	bool ExecuteAction(Blackboard* pBlackboard) override;
 	bool IsDone() override;
 	bool RequiresInRange() const override;
+	bool IsInRange(Blackboard* pBlackboard) const override;
+	virtual std::string GetName() const override { return "Shoot at enemy"; };
 };
 
 class SearchForItems final :public Action
@@ -62,7 +70,8 @@ public:
 	bool ExecuteAction(Blackboard* pBlackboard) override;
 	bool IsDone() override;
 	bool RequiresInRange() const override;
-
+	bool IsInRange(Blackboard* pBlackboard) const override;
+	virtual std::string GetName() const override { return "Search for items"; };
 private:
 	float m_WanderAngle{};
 };
@@ -77,7 +86,20 @@ public:
 	bool ExecuteAction(Blackboard* pBlackboard) override;
 	bool IsDone() override;
 	bool RequiresInRange() const override;
-
+	bool IsInRange(Blackboard* pBlackboard) const override;
+	virtual std::string GetName() const override { return "Enter house"; };
 private:
 	float m_WanderAngle{};
+	float m_Range{ 5.f };
+};
+
+class PlunderHouse : public Action
+{
+public:
+	bool CheckProceduralPreconditions(Blackboard* pBlackboard) const override;
+	bool ExecuteAction(Blackboard* pBlackboard) override;
+	bool IsDone() override;
+	bool RequiresInRange() const override;
+	bool IsInRange(Blackboard* pBlackboard) const override;
+	std::string GetName() const override;
 };

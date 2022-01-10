@@ -5,6 +5,8 @@
 class Planner;
 class FiniteStateMachine;
 class Blackboard;
+class ActionState;
+class MoveState;
 
 class Character final
 {
@@ -17,7 +19,13 @@ public:
 	void AddAction(Action* action);
 
 	std::vector<Action*> GetPlan() const;
+	std::vector<Action*> GetActions() const;
+	Action* GetCurrentAction() const;
+	
 	void ChangeCharacterState(std::string string, bool b);
+	std::map<std::string, bool> GetConditions() const;
+	std::map<std::string, bool> GetGoals() const;
+	
 	void SetAgentInfo(AgentInfo agentInfo);
 	AgentInfo GetAgentInfo() const;
 	
@@ -27,11 +35,15 @@ private:
 	AgentInfo m_AgentInfo;
 	
 	FiniteStateMachine* m_pFSM;	// the finite state machine that will make the character move and perform actions its states will be (Plan, Move, Perform)
+	ActionState* m_pActionState;
+	MoveState* m_pMoveState;
+	
 	Planner* m_pPlanner;		// Planner that will find plans for our character
 
 	std::vector<Action*> m_pActions;
 	std::vector<Action*> m_pCurrentPlan;
 	Action* m_pCurrentAction;
+	
 	Blackboard* m_pBlackboard{nullptr};
 
 	std::map<std::string, bool> m_WorldConditions{};
