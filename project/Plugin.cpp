@@ -17,12 +17,8 @@ void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
 	info.Student_FirstName = "Maxim";
 	info.Student_LastName = "Robeyst";
 	info.Student_Class = "2DAE06";
-
-	m_pBlackboard = CreateBlackboard();
 	
-	m_pCharacter = new Character(m_pBlackboard);
-
-	m_pBlackboard->ChangeData("Character", m_pCharacter);
+	m_pCharacter = new Character(m_pInterface);
 }
 
 //Called only once
@@ -36,7 +32,6 @@ void Plugin::DllShutdown()
 {
 	//Called when the plugin gets unloaded
 	delete m_pCharacter;
-	delete m_pBlackboard;
 }
 
 //Called only once, during initialization
@@ -104,24 +99,15 @@ SteeringPlugin_Output Plugin::UpdateSteering(float dt)
 
 	//Use the Interface (IAssignmentInterface) to 'interface' with the AI_Framework
 	m_pCharacter->SetAgentInfo(m_pInterface->Agent_GetInfo());
-	m_pCharacter->Update(dt);
 
 	auto nextTargetPos = m_Target; //To start you can use the mouse position as guidance
 
-	auto vHousesInFOV = GetHousesInFOV();//uses m_pInterface->Fov_GetHouseByIndex(...)
-	auto vEntitiesInFOV = GetEntitiesInFOV(); //uses m_pInterface->Fov_GetEntityByIndex(...)
-
-	if (vHousesInFOV.size() > 0)
-	{
-		m_pCharacter->ChangeCharacterState("HouseInFov", true);
-		m_pBlackboard->ChangeData("ClosestHouse", vHousesInFOV[0]);
-	}
-	else
-	{
-		m_pCharacter->ChangeCharacterState("HouseInFov", false);
-		m_pBlackboard->ChangeData("ClosestHouse", HouseInfo{});
-	}
+	m_pCharacter->SetHouseInFOV(GetHousesInFOV());//uses m_pInterface->Fov_GetHouseByIndex(...)
+	m_pCharacter->SetEntitiesInFOV(GetEntitiesInFOV()); //uses m_pInterface->Fov_GetEntityByIndex(...)
 	
+	m_pCharacter->Update(dt);
+
+	auto vEntitiesInFOV = m_pCharacter->GetEntitiesInFOV();
 	for (auto& e : vEntitiesInFOV)
 	{
 		if (e.Type == eEntityType::PURGEZONE)
@@ -133,21 +119,6 @@ SteeringPlugin_Output Plugin::UpdateSteering(float dt)
 		if(e.Type == eEntityType::ENEMY)
 		{
 			m_pCharacter->ChangeCharacterState("EnemiesInFov", true);
-			EnemyInfo closestEnemy;
-			if (!m_pBlackboard->GetData("ClosestEnemy", closestEnemy))
-			{
-				
-				m_pInterface->Enemy_GetInfo(e, closestEnemy);
-				m_pBlackboard->ChangeData("ClosestEnemy",  closestEnemy);
-				break;
-			}
-			
-			if(Elite::DistanceSquared(e.Location, m_pCharacter->GetAgentInfo().Position) < Elite::DistanceSquared(e.Location, m_pCharacter->GetAgentInfo().Position) 
-				|| closestEnemy.Location == Elite::Vector2{0,0})
-			{
-				m_pInterface->Enemy_GetInfo(e, closestEnemy);
-				m_pBlackboard->ChangeData("ClosestEnemy", closestEnemy);
-			}
 		}
 	}
 	
@@ -253,15 +224,4 @@ vector<EntityInfo> Plugin::GetEntitiesInFOV() const
 	}
 	
 	return vEntitiesInFOV;
-}
-
-Blackboard* Plugin::CreateBlackboard() const
-{
-	Blackboard* pBlackboard = new Blackboard();
-	pBlackboard->AddData("Character", static_cast<Character*>(nullptr));
-	pBlackboard->AddData("ClosestEnemy", EnemyInfo{});
-	pBlackboard->AddData("ClosestHouse", HouseInfo{});
-	pBlackboard->AddData("Interface", m_pInterface);
-
-	return pBlackboard;
 }

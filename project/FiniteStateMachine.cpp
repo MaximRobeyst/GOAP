@@ -23,7 +23,7 @@ void FiniteStateMachine::AddTransition(FSMState* startState, FSMState* toState, 
 	m_Transitions[startState].push_back(std::make_pair(transition, toState));
 }
 
-void FiniteStateMachine::Update(float deltaTime, Blackboard* pBlackboard)
+void FiniteStateMachine::Update(float deltaTime, Character* pBlackboard)
 {
 	if (m_pCurrentState == nullptr)
 		return;
@@ -54,11 +54,16 @@ ActionState::ActionState(Character* pCharacter)
 {
 }
 
-void ActionState::Update(float deltaTime, Blackboard* pBlackboard)
+void ActionState::OnEnter()
 {
-	if (m_pCurrentAction == nullptr || !m_pPlanner->IsPlanValid(m_pCurrentAction, m_pCharacter->GetConditions(), pBlackboard))
+	std::cout << "Entered Action State" << std::endl;
+}
+
+void ActionState::Update(float deltaTime, Character* pCharacter)
+{
+	if (m_pCurrentAction == nullptr || !m_pPlanner->IsPlanValid(m_pCurrentAction, m_pCharacter->GetConditions(), pCharacter))
 	{
-		m_pCurrentPlan = m_pPlanner->GetPlan(m_pCharacter->GetActions(), m_pCharacter->GetConditions(), m_pCharacter->GetGoals(), pBlackboard);
+		m_pCurrentPlan = m_pPlanner->GetPlan(m_pCharacter->GetActions(), m_pCharacter->GetConditions(), m_pCharacter->GetGoals(), pCharacter);
 		m_pCurrentAction = m_pCurrentPlan[0];
 		std::cout << "New Plan: ";
 		for_each(m_pCurrentPlan.begin(), m_pCurrentPlan.end(), [](Action* action)
@@ -68,7 +73,7 @@ void ActionState::Update(float deltaTime, Blackboard* pBlackboard)
 		std::cout << std::endl;
 	}
 
-	m_pCurrentAction->ExecuteAction(pBlackboard);
+	m_pCurrentAction->ExecuteAction(pCharacter);
 }
 
 Action* ActionState::GetCurrentAction()
@@ -81,23 +86,13 @@ void MoveState::OnEnter()
 	std::cout << "Entered move state" << std::endl;
 }
 
-void MoveState::Update(float deltaTime, Blackboard* pBlackboard)
+void MoveState::Update(float deltaTime, Character* pCharacter)
 {
-	HouseInfo houseInfo;
-	if (!pBlackboard->GetData("ClosestHouse", houseInfo))
-		return;
-
-	Character* pCharacter;
-	if (!pBlackboard->GetData("Character", pCharacter))
-		return;
-
-	IExamInterface* pInterface;
-	if (!pBlackboard->GetData("Interface", pInterface))
-		return;
+	IExamInterface* pInterface = pCharacter->GetInterface();
 
 	auto agentInfo = pCharacter->GetAgentInfo();
 
-	agentInfo.LinearVelocity = pInterface->NavMesh_GetClosestPathPoint(houseInfo.Center) - agentInfo.Position;
+	agentInfo.LinearVelocity = pInterface->NavMesh_GetClosestPathPoint(pCharacter->GetCurrentAction()->GetTarget(pCharacter)) - agentInfo.Position;
 	agentInfo.LinearVelocity.Normalize();
 	agentInfo.LinearVelocity *= agentInfo.MaxLinearSpeed;
 
@@ -106,25 +101,19 @@ void MoveState::Update(float deltaTime, Blackboard* pBlackboard)
 	
 }
 
-bool ToMoveTransition::ToTransition(Blackboard* pBlackboard) const
+bool ToMoveTransition::ToTransition(Character* pCharacter) const
 {
-	Character* pCharacter;
-	pBlackboard->GetData("Character", pCharacter);
-
 	if (pCharacter->GetCurrentAction() == nullptr)
 		return false;
-
-	return pCharacter->GetCurrentAction()->RequiresInRange() && !pCharacter->GetCurrentAction()->IsInRange(pBlackboard);
+	
+	return pCharacter->GetCurrentAction()->RequiresInRange() && !pCharacter->GetCurrentAction()->IsInRange(pCharacter);
 
 }
 
-bool ToActionTransition::ToTransition(Blackboard* pBlackboard) const
+bool ToActionTransition::ToTransition(Character* pCharacter) const
 {
-	Character* pCharacter;
-	pBlackboard->GetData("Character", pCharacter);
-
 	if (pCharacter->GetCurrentAction() == nullptr)
 		return false;
 
-	return pCharacter->GetCurrentAction()->IsInRange(pBlackboard);
+	return pCharacter->GetCurrentAction()->IsInRange(pCharacter) || pCharacter->GetCurrentAction()->IsDone(pCharacter);
 }

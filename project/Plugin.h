@@ -27,7 +27,6 @@ private:
 	IExamInterface* m_pInterface = nullptr;
 	vector<HouseInfo> GetHousesInFOV() const;
 	vector<EntityInfo> GetEntitiesInFOV() const;
-	Blackboard* CreateBlackboard() const;
 
 	Elite::Vector2 m_Target = {};
 	bool m_CanRun = false; //Demo purpose
@@ -38,7 +37,6 @@ private:
 
 
 	Character* m_pCharacter;
-	Blackboard* m_pBlackboard{ nullptr };
 };
 
 //ENTRY

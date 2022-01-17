@@ -2,6 +2,7 @@
 #include <Exam_HelperStructs.h>
 
 #include "ConditionsAndActions.h"
+class IExamInterface;
 class Planner;
 class FiniteStateMachine;
 class Blackboard;
@@ -11,7 +12,7 @@ class MoveState;
 class Character final
 {
 public:
-	Character(Blackboard* pBlackboard);
+	Character(IExamInterface* pInterface);
 	~Character();
 
 	void Update(float dt);
@@ -28,25 +29,43 @@ public:
 	
 	void SetAgentInfo(AgentInfo agentInfo);
 	AgentInfo GetAgentInfo() const;
+
+	void SetHouseInFOV(const std::vector<HouseInfo>& housesInFOV);
+	void SetEntitiesInFOV(const std::vector<EntityInfo>& entitiesInFOV);
+
+	std::vector<HouseInfo> GetHousesInFOV() const;
+	std::vector<EntityInfo> GetEntitiesInFOV() const;
+	std::vector<ItemInfo> GetInventory() const;
+
+	IExamInterface* GetInterface() const;
 	
 private:
 	void MakeFSM();
 
+	bool InventoryFull();
+
 	AgentInfo m_AgentInfo;
-	
-	FiniteStateMachine* m_pFSM;	// the finite state machine that will make the character move and perform actions its states will be (Plan, Move, Perform)
-	ActionState* m_pActionState;
-	MoveState* m_pMoveState;
-	
-	Planner* m_pPlanner;		// Planner that will find plans for our character
+	IExamInterface* m_pInterface;
 
-	std::vector<Action*> m_pActions;
-	std::vector<Action*> m_pCurrentPlan;
-	Action* m_pCurrentAction;
-	
-	Blackboard* m_pBlackboard{nullptr};
+	std::vector<HouseInfo> m_HousesInFOV{};
+	std::vector<EntityInfo> m_EntitiesInFOV{};
+	std::vector<ItemInfo> m_Inventory{};
 
-	std::map<std::string, bool> m_WorldConditions{};
-	std::map<std::string, bool> m_Goals{};
+	std::vector<EnemyInfo> m_EnemyTrack{};
+
+	Elite::Vector2 m_Target{};
+	
+	FiniteStateMachine* m_pFSM;				// the finite state machine that will make the character move and perform actions its states will be (Plan, Move, Perform)
+	ActionState* m_pActionState;			// state in the FSM that performs an action
+	MoveState* m_pMoveState;				// state in the FSM that moves to the target the agent is supposed to go
+	
+	Planner* m_pPlanner;					// Planner that will find plans for our character
+
+	std::vector<Action*> m_pActions;		// Al the actions the character has
+	std::vector<Action*> m_pCurrentPlan;	// the current plan made by the planner
+	Action* m_pCurrentAction;				// THe Current action being performed
+
+	std::map<std::string, bool> m_WorldConditions{};	// All the condition the world has
+	std::map<std::string, bool> m_Goals{};				// the goals the player has
 };
 

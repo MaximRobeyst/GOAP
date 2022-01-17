@@ -15,7 +15,7 @@ public:
 	virtual ~FSMState() = default;
 
 	virtual void OnEnter() {};
-	virtual void Update(float deltaTime, Blackboard* pBlackboard) {};
+	virtual void Update(float deltaTime, Character* pCharacter) {};
 };
 
 class FSMTransition
@@ -24,7 +24,7 @@ public:
 	FSMTransition() = default;
 	virtual ~FSMTransition() = default;
 
-	virtual bool ToTransition(Blackboard* pBlackboard) const = 0;
+	virtual bool ToTransition(Character* pCharacter) const = 0;
 };
 
 class FiniteStateMachine final
@@ -34,7 +34,7 @@ public:
 	~FiniteStateMachine();
 
 	void AddTransition(FSMState* startState, FSMState* toState, FSMTransition* transition);
-	void Update(float deltaTime, Blackboard* pBlackboard);
+	void Update(float deltaTime, Character* pBlackboard);
 private:
 	void ChangeState(FSMState* newState);
 
@@ -49,7 +49,9 @@ class ActionState : public FSMState
 {
 public:
 	ActionState(Character* pCharacter);
-	void Update(float deltaTime, Blackboard* pBlackboard) override;
+
+	void OnEnter() override;
+	void Update(float deltaTime, Character* pCharacter) override;
 	
 	Action* GetCurrentAction();
 private:
@@ -64,18 +66,18 @@ class MoveState : public FSMState
 {
 public:
 	void OnEnter() override;
-	void Update(float deltaTime, Blackboard* pBlackboard) override;
+	void Update(float deltaTime, Character* pCharacter) override;
 };
 
 class ToMoveTransition : public FSMTransition
 {
 public:
-	bool ToTransition(Blackboard* pBlackboard) const override;
+	bool ToTransition(Character* pCharacter) const override;
 };
 
 class ToActionTransition : public FSMTransition
 {
 public:
-	bool ToTransition(Blackboard* pBlackboard) const override;
+	bool ToTransition(Character* pCharacter) const override;
 };
 

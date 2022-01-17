@@ -9,12 +9,28 @@
     <ClCompile Include="FiniteStateMachine.cpp">
       <Filter>GOAP</Filter>
     </ClCompile>
-    <ClCompile Include="ConditionsAndActions.cpp">
-      <Filter>GOAP</Filter>
-    </ClCompile>
     <ClCompile Include="Planner.cpp">
       <Filter>GOAP</Filter>
     </ClCompile>
+    <ClCompile Include="ConditionsAndActions.cpp">
+      <Filter>GOAP\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="PickupClass.cpp">
+      <Filter>GOAP\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="PlunderHouse.cpp">
+      <Filter>GOAP\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="EnterHouse.cpp">
+      <Filter>GOAP\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="SearchForItems.cpp">
+      <Filter>GOAP\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="ShootAtEnemy.cpp">
+      <Filter>GOAP\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="FleeFromEnemy.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Plugin.h" />
@@ -25,19 +41,38 @@
     <ClInclude Include="FiniteStateMachine.h">
       <Filter>GOAP</Filter>
     </ClInclude>
-    <ClInclude Include="ConditionsAndActions.h">
-      <Filter>GOAP</Filter>
-    </ClInclude>
     <ClInclude Include="Planner.h">
       <Filter>GOAP</Filter>
     </ClInclude>
     <ClInclude Include="Blackboard.h">
       <Filter>GOAP</Filter>
     </ClInclude>
+    <ClInclude Include="ConditionsAndActions.h">
+      <Filter>GOAP\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="PickupClass.h">
+      <Filter>GOAP\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="PlunderHouse.h">
+      <Filter>GOAP\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="EnterHouse.h">
+      <Filter>GOAP\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="SearchForItems.h">
+      <Filter>GOAP\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="ShootAtEnemy.h">
+      <Filter>GOAP\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="FleeFromEnemy.h" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="GOAP">
       <UniqueIdentifier>{bbab6ac7-f8b9-4920-9f09-b701f0c56e51}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GOAP\Actions">
+      <UniqueIdentifier>{e1717978-a4f0-43d1-a5e2-ef55d3ba5dda}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
 </Project>
