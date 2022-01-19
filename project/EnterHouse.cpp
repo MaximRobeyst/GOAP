@@ -7,6 +7,7 @@
 
 EnterHouse::EnterHouse()
 {
+	m_Preconditions["EnemiesInFov"] = true;
 	m_Preconditions["HouseInFov"] = true;
 	m_Preconditions["HasWeapon"] = false;
 	m_Preconditions["InHouse"] = false;
@@ -15,7 +16,7 @@ EnterHouse::EnterHouse()
 	m_Effects["EnemiesInFov"] = false;
 	m_Effects["Survive"] = true;
 
-	m_Cost = 1.f;
+	m_Cost = 2.f;
 }
 
 EnterHouse::EnterHouse(const std::map<std::string, bool>& preConditions, const std::map<std::string, bool>& effects,
@@ -26,11 +27,25 @@ EnterHouse::EnterHouse(const std::map<std::string, bool>& preConditions, const s
 
 bool EnterHouse::CheckProceduralPreconditions(Character* pCharacter) const
 {
+	auto houseInfo = pCharacter->GetCurrentHouseTarget();
+
+	if (pCharacter->GetEnteredHouses().size() > 0)
+	{
+		auto enteredHouses = pCharacter->GetEnteredHouses();
+
+		if (find_if(enteredHouses.begin(), enteredHouses.end(), [&](Elite::Vector2 v)
+			{
+				return v == houseInfo.Center;
+			}) != enteredHouses.end())
+			return false;
+
+	}
 	return true;
 }
 
 bool EnterHouse::ExecuteAction(Character* pCharacter)
 {
+	GetTarget(pCharacter);
 	HouseInfo houseInfo;
 	houseInfo = pCharacter->GetHousesInFOV()[0];
 
@@ -66,7 +81,10 @@ bool EnterHouse::IsInRange(Character* pCharacter) const
 		pCharacter->GetAgentInfo().Position.x < houseInfo.Center.x + (houseInfo.Size.x / 2) &&
 		pCharacter->GetAgentInfo().Position.y > houseInfo.Center.y - (houseInfo.Size.y / 2) &&
 		pCharacter->GetAgentInfo().Position.y < houseInfo.Center.y + (houseInfo.Size.y / 2))
+	{
 		pCharacter->ChangeCharacterState("InHouse", true);
+		pCharacter->AddEnteredHouse(houseInfo.Center);
+	}
 
 	pCharacter->GetInterface()->Draw_Point(Elite::Vector2{ houseInfo.Center.x - (houseInfo.Size.x / 2) ,  houseInfo.Center.y - (houseInfo.Size.y / 2) }, 4.f, { 1,0,0 }, 0.9f);
 	pCharacter->GetInterface()->Draw_Point(Elite::Vector2{ houseInfo.Center.x + (houseInfo.Size.x / 2) ,  houseInfo.Center.y - (houseInfo.Size.y / 2) }, 4.f, { 1,0,0 }, 0.9f);
@@ -80,10 +98,7 @@ bool EnterHouse::IsInRange(Character* pCharacter) const
 
 Elite::Vector2 EnterHouse::GetTarget(Character* pCharacter)
 {
-	if (m_Target == Elite::Vector2{})
-	{
-		m_Target = pCharacter->GetHousesInFOV()[0].Center;
-	}
+	m_Target = pCharacter->GetHousesInFOV()[0].Center;
 
 	return m_Target;
 }

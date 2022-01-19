@@ -53,10 +53,15 @@ public:
 	void OnEnter() override;
 	void Update(float deltaTime, Character* pCharacter) override;
 	
-	Action* GetCurrentAction();
+	Action* GetCurrentAction() const;
+	std::vector<Action*> GetCurrentPlan() const;
+	Planner* GetPlanner() const;
 private:
+	void GenerateNewPlan(Character* pCharacter);
+	
 	Character* m_pCharacter;
 	Planner* m_pPlanner;
+	int m_ActionPointer = 0;
 
 	std::vector<Action*> m_pCurrentPlan;
 	Action* m_pCurrentAction;

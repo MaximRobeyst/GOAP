@@ -20,8 +20,10 @@ public:
 	std::string GetName() const override;
 private:
 	UINT GetEmptySlot(Character* pCharacter);
-	void GetItemTarget(Character* pCharacter);
+	EntityInfo GetItemTarget(Character* pCharacter) const;
 
-	float m_Range{ 5.f };
-	ItemInfo m_Info{};
+	float m_Range{ 1.5f };
+	float m_TooCloseRange{ 1.f };
+	bool m_ItemAdded{ false };
+	Elite::Vector2 m_ItemLocation;
 };

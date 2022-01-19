@@ -30,7 +30,12 @@
     <ClCompile Include="ShootAtEnemy.cpp">
       <Filter>GOAP\Actions</Filter>
     </ClCompile>
-    <ClCompile Include="FleeFromEnemy.cpp" />
+    <ClCompile Include="ExitHouse.cpp">
+      <Filter>GOAP\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="FleeFromEnemy.cpp">
+      <Filter>GOAP\Actions</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Plugin.h" />
@@ -65,7 +70,12 @@
     <ClInclude Include="ShootAtEnemy.h">
       <Filter>GOAP\Actions</Filter>
     </ClInclude>
-    <ClInclude Include="FleeFromEnemy.h" />
+    <ClInclude Include="FleeFromEnemy.h">
+      <Filter>GOAP\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="ExitHouse.h">
+      <Filter>GOAP\Actions</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Filter Include="GOAP">

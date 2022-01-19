@@ -9,10 +9,8 @@
 PickupItem::PickupItem()
 {
 	m_Preconditions["EnemiesInFov"] = true;
-	m_Preconditions["HouseInFov"] = true;
 	m_Preconditions["ItemInFov"] = true;
 	m_Preconditions["InventoryFull"] = false;
-	m_Preconditions["InHouse"] = true;
 
 	m_Effects["Survive"] = true;
 
@@ -26,16 +24,22 @@ bool PickupItem::CheckProceduralPreconditions(Character* pCharacter) const
 
 bool PickupItem::ExecuteAction(Character* pCharacter)
 {
-	if (m_Info.ItemHash = 0)
-		GetItemTarget(pCharacter);
-
-	pCharacter->GetInterface()->Inventory_AddItem(0, m_Info);
+	auto info = GetItemTarget(pCharacter);
+	ItemInfo itemInfo;
+	
+	if (IsInRange(pCharacter))
+	{
+		if(pCharacter->GetInterface()->Item_Grab(info, itemInfo))
+		{
+			m_ItemAdded = pCharacter->GetInterface()->Inventory_AddItem(0, itemInfo);
+		}
+	}
 	return true;
 }
 
 bool PickupItem::IsDone(Character* pCharacter)
 {
-	return false;
+	return m_ItemAdded;
 }
 
 bool PickupItem::RequiresInRange() const
@@ -45,15 +49,21 @@ bool PickupItem::RequiresInRange() const
 
 bool PickupItem::IsInRange(Character* pCharacter) const
 {
-	return Elite::DistanceSquared(pCharacter->GetAgentInfo().Position, m_Info.Location) < (pCharacter->GetAgentInfo().GrabRange * pCharacter->GetAgentInfo().GrabRange);
+	float distanceSquared = Elite::DistanceSquared(pCharacter->GetAgentInfo().Position, GetItemTarget(pCharacter).Location);
+	
+	if(distanceSquared < m_TooCloseRange * m_TooCloseRange)
+	{
+		pCharacter->ChangeCharacterState("ItemInFov", false);
+	}
+
+	
+	return distanceSquared < (pCharacter->GetAgentInfo().GrabRange * pCharacter->GetAgentInfo().GrabRange);
 }
 
 Elite::Vector2 PickupItem::GetTarget(Character* pCharacter)
 {
-	if (m_Info.ItemHash == 0)
-		GetItemTarget(pCharacter);
-
-	return m_Info.Location;
+	m_ItemLocation = GetItemTarget(pCharacter).Location;
+	return m_ItemLocation;
 }
 
 std::string PickupItem::GetName() const
@@ -73,21 +83,19 @@ UINT PickupItem::GetEmptySlot(Character* pCharacter)
 	return pCharacter->GetInterface()->Inventory_GetCapacity();
 }
 
-void PickupItem::GetItemTarget(Character* pCharacter)
+EntityInfo PickupItem::GetItemTarget(Character* pCharacter) const
 {
-	ItemInfo itemInfo{};
+	EntityInfo itemInfo{};
 	auto entityInFov = pCharacter->GetEntitiesInFOV();
 
 	auto iter = std::find_if(entityInFov.begin(), entityInFov.end(), [](EntityInfo info)
 		{
 			return info.Type == eEntityType::ITEM;
 		});
-
-	if (iter == pCharacter->GetEntitiesInFOV().end())
-		return;
+	if (iter == entityInFov.end())
+		return itemInfo;
 	
-	pCharacter->GetInterface()->Item_GetInfo(*iter, itemInfo);
 
-	m_Info = itemInfo;
+	return *iter;
 
 }

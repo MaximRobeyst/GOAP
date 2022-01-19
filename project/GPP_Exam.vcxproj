@@ -186,6 +186,7 @@
     <ClInclude Include="Character.h" />
     <ClInclude Include="ConditionsAndActions.h" />
     <ClInclude Include="EnterHouse.h" />
+    <ClInclude Include="ExitHouse.h" />
     <ClInclude Include="FiniteStateMachine.h" />
     <ClInclude Include="FleeFromEnemy.h" />
     <ClInclude Include="PickupClass.h" />
@@ -200,6 +201,7 @@
     <ClCompile Include="Character.cpp" />
     <ClCompile Include="ConditionsAndActions.cpp" />
     <ClCompile Include="EnterHouse.cpp" />
+    <ClCompile Include="ExitHouse.cpp" />
     <ClCompile Include="FiniteStateMachine.cpp" />
     <ClCompile Include="FleeFromEnemy.cpp" />
     <ClCompile Include="PickupClass.cpp" />

@@ -39,7 +39,7 @@ std::vector<Action*> Planner::GetPlan(const std::vector<Action*>& availableActio
 
 	if (!succes)
 		return result;
-
+	
 	auto cheapest = leaves[0];
 	for(auto l : leaves)
 	{
@@ -105,15 +105,12 @@ bool Planner::BuildGraph(PlanNode* startNode, std::vector<PlanNode*>& leaves, co
 bool Planner::ConditionMatch(const std::map<std::string, bool>& conditions,
 	const std::map<std::string, bool>& preconditions)
 {
+	//return conditions.size() == preconditions.size()
+	//	&& std::equal(conditions.begin(), conditions.end(), preconditions.begin());
+	
 	bool allMatch = true;
 	for (auto t : preconditions)
 	{
-		//if(!std::all_of(conditions.begin(), conditions.end(), [t](auto s)
-		//	{
-		//		return t == s;
-		//	}))
-		//	allMatch = false;
-		
 		bool match = false;
 		for (auto s : conditions)
 		{

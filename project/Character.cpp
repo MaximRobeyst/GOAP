@@ -10,6 +10,7 @@
 
 //Actions
 #include "EnterHouse.h"
+#include "ExitHouse.h"
 #include "FleeFromEnemy.h"
 #include "PickupClass.h"
 #include "SearchForItems.h"
@@ -26,6 +27,7 @@ Character::Character(IExamInterface* pInterface)
 	m_pActions.push_back(new SearchForItems());
 	m_pActions.push_back(new EnterHouse());
 	m_pActions.push_back(new PickupItem());
+	m_pActions.push_back(new ExitHouse());
 
 	
 	// Set World Conditions
@@ -35,11 +37,11 @@ Character::Character(IExamInterface* pInterface)
 	m_WorldConditions["HasWeapon"] = false;
 	m_WorldConditions["Survive"] = true;
 	m_WorldConditions["InHouse"] = false;
-	m_WorldConditions["EnemyFollowing"] = false;
 	
 	// Set Character goals
 	m_Goals["Survive"] = true;
 
+	//m_AgentInfo.Orientation = Elite::randomFloat(static_cast<float>(-M_PI), static_cast<float>(M_PI));
 	
 	MakeFSM();
 }
@@ -55,13 +57,39 @@ Character::~Character()
 void Character::Update(float dt)
 {
 	m_WorldConditions["InventoryFull"] = false;
+
+	std::for_each(m_EnteredHouses.begin(), m_EnteredHouses.end(), [this](Elite::Vector2 v)
+		{
+			m_pInterface->Draw_Circle(v, 10.f, Elite::Vector3{ 1,0,1 }, 0.4f);
+		});
 	
 	if (m_HousesInFOV.size() > 0)
+	{
+		m_CurrentHouseTarget = m_HousesInFOV[0];
+		
+		m_WorldConditions["InHouse"] = (m_AgentInfo.Position.x > m_CurrentHouseTarget.Center.x - (m_CurrentHouseTarget.Size.x / 2) &&
+			m_AgentInfo.Position.x < m_CurrentHouseTarget.Center.x + (m_CurrentHouseTarget.Size.x / 2) &&
+			m_AgentInfo.Position.y > m_CurrentHouseTarget.Center.y - (m_CurrentHouseTarget.Size.y / 2) &&
+			m_AgentInfo.Position.y < m_CurrentHouseTarget.Center.y + (m_CurrentHouseTarget.Size.y / 2));
+
 		m_WorldConditions["HouseInFov"] = true;
+		
+		//if(m_EnteredHouses.size() <= 0 || std::find_if(m_EnteredHouses.begin(), m_EnteredHouses.end(), [this](Elite::Vector2 v)
+		//{
+		//		return v == m_CurrentHouseTarget.Center;
+		//}) != m_EnteredHouses.end())
+		//{
+		//	m_WorldConditions["HouseInFov"] = true;
+		//}
+		//else
+		//{
+		//	m_WorldConditions["HouseInFov"] = false;
+		//}
+	}
 	else
 	{
-		m_WorldConditions["HouseInFov"] = false;
 		m_WorldConditions["InHouse"] = false;
+		m_WorldConditions["HouseInFov"] = false;
 	}
 	
 	m_WorldConditions["ItemInFov"] = std::find_if(m_EntitiesInFOV.begin(), m_EntitiesInFOV.end(), [](EntityInfo info)
@@ -71,17 +99,18 @@ void Character::Update(float dt)
 	
 	m_pFSM->Update(dt, this);
 
-	std::cout << "==== World Conditions ====" << std::endl;
-	std::for_each(m_WorldConditions.begin(), m_WorldConditions.end(), [](std::pair<std::string, bool> a)
+	std::cout << "==== Current State ====" << std::endl;
+	auto currentPlan = m_pActionState->GetCurrentPlan();
+	std::for_each(currentPlan.begin(), currentPlan.end(), [](Action* a)
 		{
-			std::cout << a.first << " = " << a.second << std::endl;
+			std::cout << " -> " << a->GetName();
 		});
 	std::cout << std::endl;
 }
 
 std::vector<Action*> Character::GetPlan() const
 {
-	return m_pCurrentPlan;
+	return m_pActionState->GetCurrentPlan();
 }
 
 std::vector<Action*> Character::GetActions() const
@@ -92,6 +121,11 @@ std::vector<Action*> Character::GetActions() const
 Action* Character::GetCurrentAction() const
 {
 	return m_pActionState->GetCurrentAction();
+}
+
+Planner* Character::GetPlanner() const
+{
+	return m_pActionState->GetPlanner();
 }
 
 void Character::ChangeCharacterState(std::string string, bool b)
@@ -149,9 +183,34 @@ std::vector<ItemInfo> Character::GetInventory() const
 	return m_Inventory;
 }
 
+std::vector<Elite::Vector2> Character::GetEnteredHouses() const
+{
+	return m_EnteredHouses;
+}
+
+void Character::AddEnteredHouse(const Elite::Vector2& houseCenter)
+{
+	m_EnteredHouses.push_back(houseCenter);
+}
+
+HouseInfo Character::GetCurrentHouseTarget() const
+{
+	return m_CurrentHouseTarget;
+}
+
 IExamInterface* Character::GetInterface() const
 {
 	return m_pInterface;
+}
+
+void Character::PrintWorldStates() const
+{
+	std::cout << "==== World Conditions ====" << std::endl;
+	std::for_each(m_WorldConditions.begin(), m_WorldConditions.end(), [](std::pair<std::string, bool> a)
+		{
+			std::cout << a.first << " = " << a.second << std::endl;
+		});
+	std::cout << std::endl;
 }
 
 void Character::MakeFSM()

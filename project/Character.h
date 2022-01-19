@@ -22,6 +22,7 @@ public:
 	std::vector<Action*> GetPlan() const;
 	std::vector<Action*> GetActions() const;
 	Action* GetCurrentAction() const;
+	Planner* GetPlanner() const;
 	
 	void ChangeCharacterState(std::string string, bool b);
 	std::map<std::string, bool> GetConditions() const;
@@ -36,8 +37,14 @@ public:
 	std::vector<HouseInfo> GetHousesInFOV() const;
 	std::vector<EntityInfo> GetEntitiesInFOV() const;
 	std::vector<ItemInfo> GetInventory() const;
+	
+	std::vector<Elite::Vector2> GetEnteredHouses() const;
+	void AddEnteredHouse(const Elite::Vector2& houseCenter);
+	HouseInfo GetCurrentHouseTarget() const;
 
 	IExamInterface* GetInterface() const;
+
+	void PrintWorldStates() const;
 	
 private:
 	void MakeFSM();
@@ -62,8 +69,8 @@ private:
 	Planner* m_pPlanner;					// Planner that will find plans for our character
 
 	std::vector<Action*> m_pActions;		// Al the actions the character has
-	std::vector<Action*> m_pCurrentPlan;	// the current plan made by the planner
-	Action* m_pCurrentAction;				// THe Current action being performed
+	std::vector<Elite::Vector2> m_EnteredHouses{};
+	HouseInfo m_CurrentHouseTarget{};
 
 	std::map<std::string, bool> m_WorldConditions{};	// All the condition the world has
 	std::map<std::string, bool> m_Goals{};				// the goals the player has

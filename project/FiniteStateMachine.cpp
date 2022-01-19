@@ -35,10 +35,10 @@ void FiniteStateMachine::Update(float deltaTime, Character* pBlackboard)
 			ChangeState(m_Transitions[m_pCurrentState][i].second);
 		}
 	}
-
-
+	
 	if (m_pCurrentState != nullptr)
 		m_pCurrentState->Update(deltaTime, pBlackboard);
+	
 }
 
 void FiniteStateMachine::ChangeState(FSMState* newState)
@@ -62,23 +62,51 @@ void ActionState::OnEnter()
 void ActionState::Update(float deltaTime, Character* pCharacter)
 {
 	if (m_pCurrentAction == nullptr || !m_pPlanner->IsPlanValid(m_pCurrentAction, m_pCharacter->GetConditions(), pCharacter))
-	{
-		m_pCurrentPlan = m_pPlanner->GetPlan(m_pCharacter->GetActions(), m_pCharacter->GetConditions(), m_pCharacter->GetGoals(), pCharacter);
-		m_pCurrentAction = m_pCurrentPlan[0];
-		std::cout << "New Plan: ";
-		for_each(m_pCurrentPlan.begin(), m_pCurrentPlan.end(), [](Action* action)
-			{
-				std::cout << action->GetName() << " -> ";
-			});
-		std::cout << std::endl;
-	}
+		GenerateNewPlan(pCharacter);
 
 	m_pCurrentAction->ExecuteAction(pCharacter);
+
+	if (m_pCurrentAction->IsDone(pCharacter))
+	{
+		++m_ActionPointer;
+		if (m_pCurrentPlan.size() >= m_ActionPointer)
+		{
+			m_ActionPointer = 0;
+			GenerateNewPlan(pCharacter);
+		}
+		
+		m_pCurrentAction = m_pCurrentPlan[m_ActionPointer];
+	}
+	
+	std::cout << "===== Current state =====" << std::endl;
+	std::cout << " Action State " << std::endl;
 }
 
-Action* ActionState::GetCurrentAction()
+Action* ActionState::GetCurrentAction() const
 {
 	return m_pCurrentAction;
+}
+
+std::vector<Action*> ActionState::GetCurrentPlan() const
+{
+	return m_pCurrentPlan;
+}
+
+Planner* ActionState::GetPlanner() const
+{
+	return m_pPlanner;
+}
+
+void ActionState::GenerateNewPlan(Character* pCharacter)
+{
+	m_pCurrentPlan = m_pPlanner->GetPlan(m_pCharacter->GetActions(), m_pCharacter->GetConditions(), m_pCharacter->GetGoals(), pCharacter);
+	m_pCurrentAction = m_pCurrentPlan[0];
+	std::cout << "New Plan: ";
+	for_each(m_pCurrentPlan.begin(), m_pCurrentPlan.end(), [](Action* action)
+		{
+			std::cout << action->GetName() << " -> ";
+		});
+	std::cout << std::endl;
 }
 
 void MoveState::OnEnter()
@@ -92,12 +120,17 @@ void MoveState::Update(float deltaTime, Character* pCharacter)
 
 	auto agentInfo = pCharacter->GetAgentInfo();
 
-	agentInfo.LinearVelocity = pInterface->NavMesh_GetClosestPathPoint(pCharacter->GetCurrentAction()->GetTarget(pCharacter)) - agentInfo.Position;
+	auto target = pCharacter->GetCurrentAction()->GetTarget(pCharacter);
+	pCharacter->GetInterface()->Draw_Point(target, 4.f, Elite::Vector3{ 1.f, 1.1, 1.f }, 0.4f);
+	
+	agentInfo.LinearVelocity = pInterface->NavMesh_GetClosestPathPoint(target) - agentInfo.Position;
 	agentInfo.LinearVelocity.Normalize();
 	agentInfo.LinearVelocity *= agentInfo.MaxLinearSpeed;
 
-
 	pCharacter->SetAgentInfo(agentInfo);
+	
+	std::cout << "===== Current state =====" << std::endl;
+	std::cout << " Move State " << std::endl;
 	
 }
 
@@ -115,5 +148,5 @@ bool ToActionTransition::ToTransition(Character* pCharacter) const
 	if (pCharacter->GetCurrentAction() == nullptr)
 		return false;
 
-	return pCharacter->GetCurrentAction()->IsInRange(pCharacter) || pCharacter->GetCurrentAction()->IsDone(pCharacter);
+	return pCharacter->GetCurrentAction()->IsInRange(pCharacter) || pCharacter->GetCurrentAction()->IsDone(pCharacter) || !pCharacter->GetPlanner()->IsPlanValid(pCharacter->GetCurrentAction(), pCharacter->GetConditions(), pCharacter);
 }
