@@ -7,13 +7,15 @@
 
 EnterHouse::EnterHouse()
 {
-	m_Preconditions["EnemiesInFov"] = true;
-	m_Preconditions["HouseInFov"] = true;
-	m_Preconditions["HasWeapon"] = false;
-	m_Preconditions["InHouse"] = false;
+	m_Preconditions["EnemyChasing"] = true;
+	//m_Preconditions["HouseInFov"] = true;
+	//m_Preconditions["HasWeapon"] = false;
+	m_Preconditions["HasHouseTarget"] = true;
+	m_Preconditions["ItemInFov"] = false;
+	//m_Preconditions["InHouse"] = false;
 
 	m_Effects["InHouse"] = true;
-	m_Effects["EnemiesInFov"] = false;
+	m_Effects["EnemyChasing"] = false;
 	m_Effects["Survive"] = true;
 
 	m_Cost = 2.f;
@@ -29,7 +31,8 @@ bool EnterHouse::CheckProceduralPreconditions(Character* pCharacter) const
 {
 	auto houseInfo = pCharacter->GetCurrentHouseTarget();
 
-	if (pCharacter->GetEnteredHouses().size() > 0)
+	// if house has been entered recently don't enter it again
+	if (!pCharacter->GetEnteredHouses().empty())
 	{
 		auto enteredHouses = pCharacter->GetEnteredHouses();
 
@@ -37,31 +40,58 @@ bool EnterHouse::CheckProceduralPreconditions(Character* pCharacter) const
 			{
 				return v == houseInfo.Center;
 			}) != enteredHouses.end())
+		{
 			return false;
+		}
 
 	}
 	return true;
 }
 
-bool EnterHouse::ExecuteAction(Character* pCharacter)
+bool EnterHouse::ExecuteAction(float dt, Character* pCharacter)
 {
 	GetTarget(pCharacter);
-	HouseInfo houseInfo;
-	houseInfo = pCharacter->GetHousesInFOV()[0];
+	//HouseInfo houseInfo;
+	//houseInfo = pCharacter->GetHousesInFOV()[0];
 
-	auto characterInfo = pCharacter->GetAgentInfo();
+	const auto agentInfo = pCharacter->GetAgentInfo();
+	auto steering = pCharacter->GetSteeringOutput();
 
-	characterInfo.LinearVelocity = houseInfo.Center - characterInfo.Position;
-	characterInfo.LinearVelocity.Normalize();
-	characterInfo.LinearVelocity *= -characterInfo.MaxLinearSpeed;
+	steering.LinearVelocity = pCharacter->GetCurrentHouseTarget().Center - agentInfo.Position;
+	steering.LinearVelocity.Normalize();
+	steering.LinearVelocity *= -agentInfo.MaxLinearSpeed;
 
-	pCharacter->SetAgentInfo(characterInfo);
+	//steering.AutoOrient = false;
+	//steering.AngularVelocity = agentInfo.MaxAngularSpeed;
+	
+	pCharacter->SetSteeringOutput(steering);
 	return true;
 }
 
 bool EnterHouse::IsDone(Character* pCharacter)
 {
-	return IsInRange(pCharacter);
+	//if(!IsInRange(pCharacter))
+	//	return false;
+	//
+	//auto steering = pCharacter->GetSteeringOutput();
+	//steering.AutoOrient = true;
+	//pCharacter->SetSteeringOutput(steering);
+	//
+	//return true;
+
+	auto entitiesInFov = pCharacter->GetEntitiesInFOV();
+	if(std::find_if(entitiesInFov.begin(), entitiesInFov.end(), [](EntityInfo info)
+		{
+			return info.Type == eEntityType::ITEM;
+		}) != entitiesInFov.end())
+	{
+		pCharacter->AddEnteredHouse(pCharacter->GetCurrentHouseTarget().Center);
+		pCharacter->ChangeCharacterState("HasHouseTarget", false);
+		pCharacter->SetCurrentHouseTarget(HouseInfo{});
+		pCharacter->ChangeCharacterState("InHouse", true);
+	}
+
+	return IsInRange(pCharacter) || !pCharacter->GetEntitiesInFOV().empty();
 }
 
 bool EnterHouse::RequiresInRange() const
@@ -71,7 +101,7 @@ bool EnterHouse::RequiresInRange() const
 
 bool EnterHouse::IsInRange(Character* pCharacter) const
 {
-	if (pCharacter->GetHousesInFOV().size() <= 0)
+	if (pCharacter->GetHousesInFOV().empty())
 		return false;
 	
 	HouseInfo houseInfo = pCharacter->GetHousesInFOV()[0];
@@ -83,7 +113,6 @@ bool EnterHouse::IsInRange(Character* pCharacter) const
 		pCharacter->GetAgentInfo().Position.y < houseInfo.Center.y + (houseInfo.Size.y / 2))
 	{
 		pCharacter->ChangeCharacterState("InHouse", true);
-		pCharacter->AddEnteredHouse(houseInfo.Center);
 	}
 
 	pCharacter->GetInterface()->Draw_Point(Elite::Vector2{ houseInfo.Center.x - (houseInfo.Size.x / 2) ,  houseInfo.Center.y - (houseInfo.Size.y / 2) }, 4.f, { 1,0,0 }, 0.9f);
@@ -91,14 +120,23 @@ bool EnterHouse::IsInRange(Character* pCharacter) const
 	pCharacter->GetInterface()->Draw_Point(Elite::Vector2{ houseInfo.Center.x - (houseInfo.Size.x / 2) ,  houseInfo.Center.y + (houseInfo.Size.y / 2) }, 4.f, { 1,0,0 }, 0.9f);
 	pCharacter->GetInterface()->Draw_Point(Elite::Vector2{ houseInfo.Center.x + (houseInfo.Size.x / 2) ,  houseInfo.Center.y + (houseInfo.Size.y / 2) }, 4.f, { 1,0,0 }, 0.9f);
 
+	auto distance = Elite::DistanceSquared(pCharacter->GetAgentInfo().Position, houseInfo.Center);
+
+	if(distance < (m_Range * m_Range))
+	{
+		pCharacter->AddEnteredHouse(houseInfo.Center);
+		pCharacter->ChangeCharacterState("HasHouseTarget", false);
+		pCharacter->SetCurrentHouseTarget(HouseInfo{});
+		pCharacter->ChangeCharacterState("InHouse", true);
+	}
 	
-	return Elite::DistanceSquared(pCharacter->GetAgentInfo().Position, houseInfo.Center) < (m_Range * m_Range);
+	return distance < (m_Range * m_Range);
 
 }
 
 Elite::Vector2 EnterHouse::GetTarget(Character* pCharacter)
 {
-	m_Target = pCharacter->GetHousesInFOV()[0].Center;
+	m_Target = pCharacter->GetCurrentHouseTarget().Center;
 
 	return m_Target;
 }

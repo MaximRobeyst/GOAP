@@ -118,66 +118,11 @@ SteeringPlugin_Output Plugin::UpdateSteering(float dt)
 		}
 		if(e.Type == eEntityType::ENEMY)
 		{
-			m_pCharacter->ChangeCharacterState("EnemiesInFov", true);
-		}
-	}
-	
-
-	//INVENTORY USAGE DEMO
-	//********************
-
-	if (m_GrabItem)
-	{
-		ItemInfo item;
-		//Item_Grab > When DebugParams.AutoGrabClosestItem is TRUE, the Item_Grab function returns the closest item in range
-		//Keep in mind that DebugParams are only used for debugging purposes, by default this flag is FALSE
-		//Otherwise, use GetEntitiesInFOV() to retrieve a vector of all entities in the FOV (EntityInfo)
-		//Item_Grab gives you the ItemInfo back, based on the passed EntityHash (retrieved by GetEntitiesInFOV)
-		if (m_pInterface->Item_Grab({}, item))
-		{
-			//Once grabbed, you can add it to a specific inventory slot
-			//Slot must be empty
-			m_pInterface->Inventory_AddItem(0, item);
+			m_pCharacter->ChangeCharacterState("EnemyChasing", true);
 		}
 	}
 
-	if (m_UseItem)
-	{
-		//Use an item (make sure there is an item at the given inventory slot)
-		m_pInterface->Inventory_UseItem(0);
-	}
-
-	if (m_RemoveItem)
-	{
-		//Remove an item from a inventory slot
-		m_pInterface->Inventory_RemoveItem(0);
-	}
-
-	steering.LinearVelocity = m_pCharacter->GetAgentInfo().LinearVelocity;
-
-	//Simple Seek Behaviour (towards Target)
-	//steering.LinearVelocity = nextTargetPos - m_pCharacter->GetAgentInfo().Position; //Desired Velocity
-	//steering.LinearVelocity.Normalize(); //Normalize Desired Velocity
-	//steering.LinearVelocity *= m_pCharacter->GetAgentInfo().MaxLinearSpeed; //Rescale to Max Speed
-
-	//if (Distance(nextTargetPos, m_pCharacter->GetAgentInfo().Position) < 2.f)
-	//{
-	//	steering.LinearVelocity = Elite::ZeroVector2;
-	//}
-
-	//steering.AngularVelocity = m_AngSpeed; //Rotate your character to inspect the world while walking
-	steering.AutoOrient = true; //Setting AutoOrientate to TRue overrides the AngularVelocity
-
-	steering.RunMode = m_CanRun; //If RunMode is True > MaxLinSpd is increased for a limited time (till your stamina runs out)
-
-								 //SteeringPlugin_Output is works the exact same way a SteeringBehaviour output
-
-								 //@End (Demo Purposes)
-	m_GrabItem = false; //Reset State
-	m_UseItem = false;
-	m_RemoveItem = false;
-
-	return steering;
+	return m_pCharacter->GetSteeringOutput();
 }
 
 //This function should only be used for rendering debug elements

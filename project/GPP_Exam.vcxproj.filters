@@ -33,7 +33,28 @@
     <ClCompile Include="ExitHouse.cpp">
       <Filter>GOAP\Actions</Filter>
     </ClCompile>
-    <ClCompile Include="FleeFromEnemy.cpp">
+    <ClCompile Include="UseMedkit.cpp">
+      <Filter>GOAP\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="UseFood.cpp">
+      <Filter>GOAP\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="CheckArea.cpp">
+      <Filter>GOAP\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="EscapePurgeZone.cpp">
+      <Filter>GOAP\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="MoveBackInBoundries.cpp">
+      <Filter>GOAP\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="LookBehindForEnemies.cpp">
+      <Filter>GOAP\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="EvadeEnemy.cpp">
+      <Filter>GOAP\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="EscapeHouse.cpp">
       <Filter>GOAP\Actions</Filter>
     </ClCompile>
   </ItemGroup>
@@ -70,10 +91,31 @@
     <ClInclude Include="ShootAtEnemy.h">
       <Filter>GOAP\Actions</Filter>
     </ClInclude>
-    <ClInclude Include="FleeFromEnemy.h">
+    <ClInclude Include="ExitHouse.h">
       <Filter>GOAP\Actions</Filter>
     </ClInclude>
-    <ClInclude Include="ExitHouse.h">
+    <ClInclude Include="UseMedkit.h">
+      <Filter>GOAP\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="UseFood.h">
+      <Filter>GOAP\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="CheckArea.h">
+      <Filter>GOAP\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="EscapePurgeZone.h">
+      <Filter>GOAP\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="MoveBackInBoundries.h">
+      <Filter>GOAP\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="LookBehindForEnemies.h">
+      <Filter>GOAP\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="EvadeEnemy.h">
+      <Filter>GOAP\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="EscapeHouse.h">
       <Filter>GOAP\Actions</Filter>
     </ClInclude>
   </ItemGroup>

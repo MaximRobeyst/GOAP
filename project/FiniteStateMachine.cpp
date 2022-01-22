@@ -56,7 +56,7 @@ ActionState::ActionState(Character* pCharacter)
 
 void ActionState::OnEnter()
 {
-	std::cout << "Entered Action State" << std::endl;
+	//std::cout << "Entered Action State" << std::endl;
 }
 
 void ActionState::Update(float deltaTime, Character* pCharacter)
@@ -64,12 +64,12 @@ void ActionState::Update(float deltaTime, Character* pCharacter)
 	if (m_pCurrentAction == nullptr || !m_pPlanner->IsPlanValid(m_pCurrentAction, m_pCharacter->GetConditions(), pCharacter))
 		GenerateNewPlan(pCharacter);
 
-	m_pCurrentAction->ExecuteAction(pCharacter);
+	m_pCurrentAction->ExecuteAction(deltaTime, pCharacter);
 
 	if (m_pCurrentAction->IsDone(pCharacter))
 	{
 		++m_ActionPointer;
-		if (m_pCurrentPlan.size() >= m_ActionPointer)
+		if (m_pCurrentPlan.size() >= static_cast<size_t>(m_ActionPointer))
 		{
 			m_ActionPointer = 0;
 			GenerateNewPlan(pCharacter);
@@ -77,9 +77,6 @@ void ActionState::Update(float deltaTime, Character* pCharacter)
 		
 		m_pCurrentAction = m_pCurrentPlan[m_ActionPointer];
 	}
-	
-	std::cout << "===== Current state =====" << std::endl;
-	std::cout << " Action State " << std::endl;
 }
 
 Action* ActionState::GetCurrentAction() const
@@ -99,6 +96,8 @@ Planner* ActionState::GetPlanner() const
 
 void ActionState::GenerateNewPlan(Character* pCharacter)
 {
+	//m_pCharacter->PrintWorldStates();
+	
 	m_pCurrentPlan = m_pPlanner->GetPlan(m_pCharacter->GetActions(), m_pCharacter->GetConditions(), m_pCharacter->GetGoals(), pCharacter);
 	m_pCurrentAction = m_pCurrentPlan[0];
 	std::cout << "New Plan: ";
@@ -111,7 +110,7 @@ void ActionState::GenerateNewPlan(Character* pCharacter)
 
 void MoveState::OnEnter()
 {
-	std::cout << "Entered move state" << std::endl;
+	//std::cout << "Entered move state" << std::endl;
 }
 
 void MoveState::Update(float deltaTime, Character* pCharacter)
@@ -119,18 +118,20 @@ void MoveState::Update(float deltaTime, Character* pCharacter)
 	IExamInterface* pInterface = pCharacter->GetInterface();
 
 	auto agentInfo = pCharacter->GetAgentInfo();
+	auto steering = pCharacter->GetSteeringOutput();
 
 	auto target = pCharacter->GetCurrentAction()->GetTarget(pCharacter);
-	pCharacter->GetInterface()->Draw_Point(target, 4.f, Elite::Vector3{ 1.f, 1.1, 1.f }, 0.4f);
+	pCharacter->GetInterface()->Draw_Point(target, 4.f, Elite::Vector3{ 1.f, 1.f, 1.f }, 0.4f);
 	
-	agentInfo.LinearVelocity = pInterface->NavMesh_GetClosestPathPoint(target) - agentInfo.Position;
-	agentInfo.LinearVelocity.Normalize();
-	agentInfo.LinearVelocity *= agentInfo.MaxLinearSpeed;
+	steering.LinearVelocity = pInterface->NavMesh_GetClosestPathPoint(target) - agentInfo.Position;
+	steering.LinearVelocity.Normalize();
+	steering.LinearVelocity *= agentInfo.MaxLinearSpeed;
 
 	pCharacter->SetAgentInfo(agentInfo);
+	pCharacter->SetSteeringOutput(steering);
 	
-	std::cout << "===== Current state =====" << std::endl;
-	std::cout << " Move State " << std::endl;
+	//std::cout << "===== Current state =====" << std::endl;
+	//std::cout << " Move State " << std::endl;
 	
 }
 

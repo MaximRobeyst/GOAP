@@ -2,14 +2,18 @@
 #include "SearchForItems.h"
 #include "Character.h"
 
+#include <IExamInterface.h>
+
 SearchForItems::SearchForItems()
 {
-	m_Preconditions["EnemiesInFov"] = false;
-	m_Preconditions["HouseInFov"] = false;
-
+	//m_Preconditions["EnemyChasing"] = false;
+	//m_Preconditions["HouseInFov"] = false;
+	m_Preconditions["HasHouseTarget"] = false;
+	
 	m_Effects["Survive"] = true;
 
-	m_Cost = 10.f;
+	m_Cost = 20.f;
+
 }
 
 SearchForItems::SearchForItems(const std::map<std::string, bool>& preConditions,
@@ -20,29 +24,53 @@ SearchForItems::SearchForItems(const std::map<std::string, bool>& preConditions,
 
 bool SearchForItems::CheckProceduralPreconditions(Character* pCharacter) const
 {
+	if (pCharacter->GetConditions()["HasWeapon"] && pCharacter->GetConditions()["WasBitten"])	// Special case where if these 2 are true at the same time we cannot execute
+		return false;
+	
 	return true;
 }
 
-bool SearchForItems::ExecuteAction(Character* pCharacter)
+bool SearchForItems::ExecuteAction(float dt, Character* pCharacter)
 {
-	auto characterInfo = pCharacter->GetAgentInfo();
+	const auto characterInfo = pCharacter->GetAgentInfo();
+	auto steering = pCharacter->GetSteeringOutput();
+	
+	//m_WanderAngle = Elite::randomFloat(-Elite::ToRadians(45.f), Elite::ToRadians(45.f));
+	//Elite::Vector2 target = characterInfo.Position + characterInfo.LinearVelocity.GetNormalized() * 6.f + (Elite::Vector2(cosf(m_WanderAngle) * 4.f, sinf(m_WanderAngle) * 4.f));
+	//
 
-	m_WanderAngle += Elite::randomFloat(-Elite::ToRadians(45.f), Elite::ToRadians(45.f));
-	Elite::Vector2 target = characterInfo.Position + characterInfo.LinearVelocity.GetNormalized() * 6.f + (Elite::Vector2(cosf(m_WanderAngle) * 4.f, sinf(m_WanderAngle) * 4.f));
+	//steering.AutoOrient = false;
+	//steering.AngularVelocity = m_WanderAngle - abs(characterInfo.Orientation);
 
-	Elite::Vector2 targetDir{ target - characterInfo.Position };
+	
+	if(Elite::DistanceSquared(characterInfo.Position, m_CurrentTarget) < (m_Range * m_Range) || steering.LinearVelocity.SqrtMagnitude() < 1.f
+		|| !pCharacter->GetHousesInFOV().empty() || m_Timer >= m_Patience)
+	{
+		GenerateNewTarget(pCharacter->GetInterface()->World_GetInfo());
+	}
+	Elite::Vector2 targetDir{ pCharacter->GetInterface()->NavMesh_GetClosestPathPoint(m_CurrentTarget) - characterInfo.Position };
 
-	characterInfo.LinearVelocity = targetDir;
-	characterInfo.LinearVelocity.Normalize();
-	characterInfo.LinearVelocity *= characterInfo.MaxLinearSpeed;
+	pCharacter->GetInterface()->Draw_Point(m_CurrentTarget, 1.f, Elite::Vector3{ 1,0.5f, 0.f }, 0.4f);
+	
+	steering.LinearVelocity = targetDir;
+	steering.LinearVelocity.Normalize();
+	steering.LinearVelocity *= characterInfo.MaxLinearSpeed;
 
-	pCharacter->SetAgentInfo(characterInfo);
+	
+	pCharacter->SetSteeringOutput(steering);
+
+	m_Timer += dt;
+	
 	return true;
 }
 
 bool SearchForItems::IsDone(Character* pCharacter)
 {
-	return true;
+	//auto steering = pCharacter->GetSteeringOutput();
+	//steering.AutoOrient = false;
+	//pCharacter->SetSteeringOutput(steering);
+	
+	return false;
 }
 
 bool SearchForItems::RequiresInRange() const
@@ -53,4 +81,15 @@ bool SearchForItems::RequiresInRange() const
 bool SearchForItems::IsInRange(Character* pBlackboard) const
 {
 	return true;
+}
+
+void SearchForItems::GenerateNewTarget(const WorldInfo& worldInfo)
+{
+	m_CurrentTarget = 
+		Elite::Vector2(
+			Elite::randomFloat(-worldInfo.Dimensions.x / 2, worldInfo.Dimensions.x / 2),
+			Elite::randomFloat(-worldInfo.Dimensions.y / 2, worldInfo.Dimensions.y / 2)
+		);
+
+	m_Timer = 0;
 }

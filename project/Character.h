@@ -24,12 +24,15 @@ public:
 	Action* GetCurrentAction() const;
 	Planner* GetPlanner() const;
 	
-	void ChangeCharacterState(std::string string, bool b);
+	void ChangeCharacterState(const std::string& string, bool b);
 	std::map<std::string, bool> GetConditions() const;
 	std::map<std::string, bool> GetGoals() const;
 	
-	void SetAgentInfo(AgentInfo agentInfo);
+	void SetAgentInfo(const AgentInfo& agentInfo);
 	AgentInfo GetAgentInfo() const;
+
+	void SetSteeringOutput(const SteeringPlugin_Output& steeringOutput);
+	SteeringPlugin_Output GetSteeringOutput() const;
 
 	void SetHouseInFOV(const std::vector<HouseInfo>& housesInFOV);
 	void SetEntitiesInFOV(const std::vector<EntityInfo>& entitiesInFOV);
@@ -38,9 +41,17 @@ public:
 	std::vector<EntityInfo> GetEntitiesInFOV() const;
 	std::vector<ItemInfo> GetInventory() const;
 	
+	bool HasItemOfType(const eItemType& itemType) const;
+	int GetIndexForType(const eItemType& itemType) const;
+	
+	void RemoveItemFromInventory(const int index);
+	void SetSlot(const int index);
+	int GetSlot() const;
+	
 	std::vector<Elite::Vector2> GetEnteredHouses() const;
 	void AddEnteredHouse(const Elite::Vector2& houseCenter);
 	HouseInfo GetCurrentHouseTarget() const;
+	void SetCurrentHouseTarget(const HouseInfo& houseCenter);
 
 	IExamInterface* GetInterface() const;
 
@@ -53,6 +64,7 @@ private:
 
 	AgentInfo m_AgentInfo;
 	IExamInterface* m_pInterface;
+	SteeringPlugin_Output m_SteeringOutput;
 
 	std::vector<HouseInfo> m_HousesInFOV{};
 	std::vector<EntityInfo> m_EntitiesInFOV{};
@@ -74,5 +86,10 @@ private:
 
 	std::map<std::string, bool> m_WorldConditions{};	// All the condition the world has
 	std::map<std::string, bool> m_Goals{};				// the goals the player has
+
+	int m_CurrentSlot{ 0 };
+
+	float m_EnteredHouseClearTimer{ 0.f };
+	const float m_EnteredHouseClearTime{ 30.0f };
 };
 

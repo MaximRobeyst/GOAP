@@ -9,7 +9,7 @@ public:
 	EnterHouse(const std::map<std::string, bool>& preConditions, const std::map<std::string, bool>& effects, float cost);
 
 	bool CheckProceduralPreconditions(Character* pCharacter) const override;
-	bool ExecuteAction(Character* pCharacter) override;
+	bool ExecuteAction(float dt,Character* pCharacter) override;
 	bool IsDone(Character* pCharacter) override;
 	
 	bool RequiresInRange() const override;

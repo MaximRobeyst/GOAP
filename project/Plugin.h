@@ -36,7 +36,7 @@ private:
 	float m_AngSpeed = 0.f; //Demo purpose
 
 
-	Character* m_pCharacter;
+	Character* m_pCharacter{nullptr};
 };
 
 //ENTRY

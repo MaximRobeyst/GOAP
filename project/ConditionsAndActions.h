@@ -14,7 +14,7 @@ public:
 	virtual ~Action() = default;
 	
 	virtual bool CheckProceduralPreconditions(Character* pCharacter) const = 0;	// Procedural conditions the character has to suffice for the action to execute
-	virtual bool ExecuteAction(Character* pCharacter) = 0;						// The action that is executing
+	virtual bool ExecuteAction(float dt,Character* pCharacter) = 0;						// The action that is executing
 	
 	virtual bool IsDone(Character* pCharacter) = 0;								// is the action done executing
 	virtual bool RequiresInRange() const = 0;				// does the action need to be in range if so the agent will go the to moveto state first and then execute

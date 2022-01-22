@@ -59,12 +59,12 @@ public:
 private:
 	void GenerateNewPlan(Character* pCharacter);
 	
-	Character* m_pCharacter;
-	Planner* m_pPlanner;
+	Character* m_pCharacter{nullptr};
+	Planner* m_pPlanner{nullptr};
 	int m_ActionPointer = 0;
 
-	std::vector<Action*> m_pCurrentPlan;
-	Action* m_pCurrentAction;
+	std::vector<Action*> m_pCurrentPlan{};
+	Action* m_pCurrentAction{nullptr};
 };
 
 class MoveState : public FSMState
