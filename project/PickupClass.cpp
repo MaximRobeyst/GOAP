@@ -73,6 +73,9 @@ bool PickupItem::ExecuteAction(float dt, Character* pCharacter)
 					case eItemType::FOOD:
 						pCharacter->ChangeCharacterState("HasFood", true);
 						break;
+					case eItemType::GARBAGE:
+						pCharacter->RemoveItemFromInventory(pCharacter->GetSlot());
+						break;
 					}
 				}
 				

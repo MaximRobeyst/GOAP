@@ -43,12 +43,29 @@ bool ShootAtEnemy::ExecuteAction(float dt, Character* pCharacter)
 			return info.Type == eEntityType::ENEMY;
 	});
 
+#ifdef _DEBUG
+
+	std::for_each(entityList.begin(), entityList.end(), [agentInfo, pCharacter](const EntityInfo& info)
+		{
+			Elite::Vector2 dir{ Elite::Vector2{info.Location - pCharacter->GetAgentInfo().Position} };
+			pCharacter->GetInterface()->Draw_Direction(
+				pCharacter->GetAgentInfo().Position, dir, dir.Normalize(), Elite::Vector3{ 1,1,0 }, 0.9f);
+		});
+	Elite::Vector2 dir{ Elite::Vector2{info.Location - pCharacter->GetAgentInfo().Position} };
+	
+	pCharacter->GetInterface()->Draw_Direction(
+		pCharacter->GetAgentInfo().Position, dir, dir.Normalize(), Elite::Vector3{ 1,0,0 }, 0.9f);
+#endif
+	
 	steering.AutoOrient = false;
 	steering.AngularVelocity = (Elite::GetOrientationFromVelocity(info.Location - agentInfo.Position) - agentInfo.Orientation);
-	std::cout << steering.AngularVelocity << std::endl;
+	std::cout << "Angular Velocity" << steering.AngularVelocity << std::endl;
 
-	const float offsetWithEnemy = Elite::GetOrientationFromVelocity(info.Location - agentInfo.Position) - abs(agentInfo.Orientation);
-	if(abs(offsetWithEnemy) < 0.07f)
+	const float offsetWithEnemy = Elite::GetOrientationFromVelocity(info.Location - agentInfo.Position) -agentInfo.Orientation;
+	std::cout << "Offset with enemy" << abs(offsetWithEnemy)
+				<< "Angle: " << Elite::GetOrientationFromVelocity(info.Location - agentInfo.Position)
+				<< "Player Rotation: " << agentInfo.Orientation << std::endl;
+	if(abs(offsetWithEnemy) < 0.08f)
 	{
 		const auto index = pCharacter->GetIndexForType(eItemType::PISTOL);
 		ItemInfo itemInfo{};

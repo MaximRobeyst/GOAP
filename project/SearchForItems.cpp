@@ -26,6 +26,9 @@ bool SearchForItems::CheckProceduralPreconditions(Character* pCharacter) const
 {
 	if (pCharacter->GetConditions()["HasWeapon"] && pCharacter->GetConditions()["WasBitten"])	// Special case where if these 2 are true at the same time we cannot execute
 		return false;
+
+	if (pCharacter->GetConditions()["HasMedkit"] && pCharacter->GetConditions()["HealthLow"])	// if these 2 values are true at the same time we want to heal
+		return false;
 	
 	return true;
 }
@@ -42,7 +45,6 @@ bool SearchForItems::ExecuteAction(float dt, Character* pCharacter)
 	//steering.AutoOrient = false;
 	//steering.AngularVelocity = m_WanderAngle - abs(characterInfo.Orientation);
 
-	
 	if(Elite::DistanceSquared(characterInfo.Position, m_CurrentTarget) < (m_Range * m_Range) || steering.LinearVelocity.SqrtMagnitude() < 1.f
 		|| !pCharacter->GetHousesInFOV().empty() || m_Timer >= m_Patience)
 	{
@@ -51,7 +53,8 @@ bool SearchForItems::ExecuteAction(float dt, Character* pCharacter)
 	Elite::Vector2 targetDir{ pCharacter->GetInterface()->NavMesh_GetClosestPathPoint(m_CurrentTarget) - characterInfo.Position };
 
 	pCharacter->GetInterface()->Draw_Point(m_CurrentTarget, 1.f, Elite::Vector3{ 1,0.5f, 0.f }, 0.4f);
-	
+
+	steering.AutoOrient = true;
 	steering.LinearVelocity = targetDir;
 	steering.LinearVelocity.Normalize();
 	steering.LinearVelocity *= characterInfo.MaxLinearSpeed;

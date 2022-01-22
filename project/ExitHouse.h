@@ -17,8 +17,8 @@ public:
 private:
 	float m_WanderAngle{};
 	
-	float m_WanderWeight{ 0.4f };
-	float m_SeekWeight{ 0.6f };
+	float m_WanderWeight{ 0.6f };
+	float m_SeekWeight{ 0.4f };
 	
 	bool m_Done{ false };
 };

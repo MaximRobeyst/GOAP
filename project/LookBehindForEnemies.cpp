@@ -4,7 +4,6 @@
 
 LookBehindForEnemies::LookBehindForEnemies()
 {
-	m_Preconditions["EnemyChasing"] = true;
 	m_Preconditions["WasBitten"] = true;
 	m_Preconditions["EnemyInFov"] = false;
 	m_Preconditions["HasWeapon"] = true;
@@ -12,7 +11,7 @@ LookBehindForEnemies::LookBehindForEnemies()
 	m_Effects["Survive"] = true;
 	m_Effects["EnemiesInFov"] = true;
 
-	m_Cost = 1.f;
+	m_Cost = 5.f;
 }
 
 bool LookBehindForEnemies::CheckProceduralPreconditions(Character* pCharacter) const
@@ -22,7 +21,7 @@ bool LookBehindForEnemies::CheckProceduralPreconditions(Character* pCharacter) c
 
 bool LookBehindForEnemies::ExecuteAction(float dt, Character* pCharacter)
 {
-	auto agentInfo = pCharacter->GetAgentInfo();
+	const auto agentInfo = pCharacter->GetAgentInfo();
 	auto steering = pCharacter->GetSteeringOutput();
 
 	steering.AutoOrient = false;
@@ -35,7 +34,8 @@ bool LookBehindForEnemies::ExecuteAction(float dt, Character* pCharacter)
 
 bool LookBehindForEnemies::IsDone(Character* pCharacter)
 {
-	return true;
+	std::cout << pCharacter->GetEntitiesInFOV().size() << std::endl;
+	return !pCharacter->GetEntitiesInFOV().empty();
 }
 
 bool LookBehindForEnemies::RequiresInRange() const

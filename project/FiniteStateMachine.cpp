@@ -122,7 +122,8 @@ void MoveState::Update(float deltaTime, Character* pCharacter)
 
 	auto target = pCharacter->GetCurrentAction()->GetTarget(pCharacter);
 	pCharacter->GetInterface()->Draw_Point(target, 4.f, Elite::Vector3{ 1.f, 1.f, 1.f }, 0.4f);
-	
+
+	steering.AutoOrient = true;
 	steering.LinearVelocity = pInterface->NavMesh_GetClosestPathPoint(target) - agentInfo.Position;
 	steering.LinearVelocity.Normalize();
 	steering.LinearVelocity *= agentInfo.MaxLinearSpeed;

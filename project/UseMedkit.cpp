@@ -12,7 +12,7 @@ UseMedkit::UseMedkit()
 	m_Effects["HasMedkit"] = false;
 	m_Effects["Survive"] = true;
 
-	m_Cost = 2.5f;
+	m_Cost = 1.5f;
 }
 
 bool UseMedkit::CheckProceduralPreconditions(Character* pCharacter) const
