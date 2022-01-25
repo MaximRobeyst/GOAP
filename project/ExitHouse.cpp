@@ -28,26 +28,12 @@ bool ExitHouse::CheckProceduralPreconditions(Character* pCharacter) const
 
 bool ExitHouse::ExecuteAction(float dt, Character* pCharacter)
 {
-	auto steering = pCharacter->GetSteeringOutput();
+	m_ExitHouseTimer += dt;
 
-	if (steering.LinearVelocity.SqrtMagnitude() < 0.25f)
-		m_WanderAngle += static_cast<float>(M_PI);
-	
-	m_WanderAngle += Elite::randomFloat(-Elite::ToRadians(30.f), Elite::ToRadians(30.f));
-	const Elite::Vector2 target = pCharacter->GetAgentInfo().Position + pCharacter->GetAgentInfo().LinearVelocity.GetNormalized() * 6.f + (Elite::Vector2(cosf(m_WanderAngle) * 4.f, sinf(m_WanderAngle) * 4.f));
-
-	Elite::Vector2 velocityWander{target - pCharacter->GetAgentInfo().Position};
-	velocityWander.Normalize();
-	velocityWander *= pCharacter->GetAgentInfo().MaxLinearSpeed;
-	
-	Elite::Vector2 velocitySeek{pCharacter->GetInterface()->NavMesh_GetClosestPathPoint(GetTarget(pCharacter)) - pCharacter->GetAgentInfo().Position};
-	velocitySeek.Normalize();
-	velocitySeek *= pCharacter->GetAgentInfo().MaxLinearSpeed;
-
-	steering.AutoOrient = true;
-	steering.LinearVelocity = (velocityWander * m_WanderWeight) + (velocitySeek * m_SeekWeight);
-	pCharacter->SetSteeringOutput(steering);
-
+	if (m_ExitHouseTimer >= m_MaxTimeInHouse)
+		MoveTowardsExit(pCharacter);
+	else
+		WanderInHouse(dt, pCharacter);
 	
 	return true;
 }
@@ -85,4 +71,41 @@ bool ExitHouse::IsInRange(Character* pCharacter) const
 Elite::Vector2 ExitHouse::GetTarget(Character* pCharacter)
 {
 	return Elite::Vector2{};
+}
+
+void ExitHouse::MoveTowardsExit(Character* pCharacter)
+{
+	auto steering = pCharacter->GetSteeringOutput();
+
+	if (steering.LinearVelocity.SqrtMagnitude() < 0.25f)
+		m_WanderAngle += static_cast<float>(M_PI);
+
+	m_WanderAngle += Elite::randomFloat(-Elite::ToRadians(30.f), Elite::ToRadians(30.f));
+	const Elite::Vector2 target = pCharacter->GetAgentInfo().Position + pCharacter->GetAgentInfo().LinearVelocity.GetNormalized() * 6.f + (Elite::Vector2(cosf(m_WanderAngle) * 4.f, sinf(m_WanderAngle) * 4.f));
+
+	Elite::Vector2 velocityWander{ target - pCharacter->GetAgentInfo().Position };
+	velocityWander.Normalize();
+	velocityWander *= pCharacter->GetAgentInfo().MaxLinearSpeed;
+
+	Elite::Vector2 velocitySeek{ pCharacter->GetInterface()->NavMesh_GetClosestPathPoint(GetTarget(pCharacter)) - pCharacter->GetAgentInfo().Position };
+	velocitySeek.Normalize();
+	velocitySeek *= pCharacter->GetAgentInfo().MaxLinearSpeed;
+
+	steering.AutoOrient = true;
+	steering.LinearVelocity = (velocityWander * m_WanderWeight) + (velocitySeek * m_SeekWeight);
+	pCharacter->SetSteeringOutput(steering);
+}
+
+void ExitHouse::WanderInHouse(float dt, Character* pCharacter)
+{
+	auto steering = pCharacter->GetSteeringOutput();
+
+	m_WanderAngle += Elite::randomFloat(-Elite::ToRadians(30.f), Elite::ToRadians(30.f));
+	const Elite::Vector2 target = pCharacter->GetAgentInfo().Position + pCharacter->GetAgentInfo().LinearVelocity.GetNormalized() * 6.f + (Elite::Vector2(cosf(m_WanderAngle) * 4.f, sinf(m_WanderAngle) * 4.f));
+
+	steering.LinearVelocity = target - pCharacter->GetAgentInfo().Position;
+	steering.LinearVelocity.Normalize();
+	steering.LinearVelocity *= pCharacter->GetAgentInfo().MaxLinearSpeed;
+	
+	pCharacter->SetSteeringOutput(steering);
 }

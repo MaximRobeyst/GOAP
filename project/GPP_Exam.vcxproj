@@ -192,6 +192,7 @@
     <ClInclude Include="FiniteStateMachine.h" />
     <ClInclude Include="EvadeEnemy.h" />
     <ClInclude Include="EscapeHouse.h" />
+    <ClInclude Include="Helpers.h" />
     <ClInclude Include="MoveBackInBoundries.h" />
     <ClInclude Include="PickupClass.h" />
     <ClInclude Include="Planner.h" />

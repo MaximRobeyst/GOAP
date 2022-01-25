@@ -40,7 +40,11 @@ public:
 	std::vector<HouseInfo> GetHousesInFOV() const;
 	std::vector<EntityInfo> GetEntitiesInFOV() const;
 	std::vector<ItemInfo> GetInventory() const;
+
+	std::vector<ItemInfo> GetItemMemory() const;
+	void AddItem(const EntityInfo& entity);
 	
+	// Inventory functionality
 	bool HasItemOfType(const eItemType& itemType) const;
 	int GetIndexForType(const eItemType& itemType) const;
 	
@@ -60,8 +64,6 @@ public:
 private:
 	void MakeFSM();
 
-	bool InventoryFull();
-
 	AgentInfo m_AgentInfo;
 	IExamInterface* m_pInterface;
 	SteeringPlugin_Output m_SteeringOutput;
@@ -70,7 +72,7 @@ private:
 	std::vector<EntityInfo> m_EntitiesInFOV{};
 	std::vector<ItemInfo> m_Inventory{};
 
-	std::vector<EnemyInfo> m_EnemyTrack{};
+	std::vector<ItemInfo> m_ItemMemory{};
 
 	Elite::Vector2 m_Target{};
 	

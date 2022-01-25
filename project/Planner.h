@@ -17,7 +17,7 @@ class Action;
  */
 
  //TODO: very important there is a lot of memory allocation going on right now make sure you fix this 
-class Planner
+class Planner final
 {
 public:
 	Planner() = default;

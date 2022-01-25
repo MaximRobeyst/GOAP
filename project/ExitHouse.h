@@ -15,11 +15,19 @@ public:
 	virtual std::string GetName() const override { return "Exit House"; };
 	Elite::Vector2 GetTarget(Character* pCharacter) override;
 private:
+
+	void MoveTowardsExit(Character* pCharacter);
+	void WanderInHouse(float dt,Character* pCharacter);
+	
 	float m_WanderAngle{};
 	
 	float m_WanderWeight{ 0.6f };
 	float m_SeekWeight{ 0.4f };
+
+	float m_ExitHouseTimer{ 0.f };
+	float m_MaxTimeInHouse{ 14.f };
 	
 	bool m_Done{ false };
+	bool m_GoToCenter{ true };
 };
 

@@ -14,6 +14,8 @@
 #include "ExitHouse.h"
 #include "EvadeEnemy.h"
 #include "EscapeHouse.h"
+#include "EscapePurgeZone.h"
+#include "Helpers.h"
 #include "MoveBackInBoundries.h"
 #include "PickupClass.h"
 #include "SearchForItems.h"
@@ -39,6 +41,7 @@ Character::Character(IExamInterface* pInterface)
 	m_pActions.push_back(new EscapeHouse());
 	m_pActions.push_back(new LookBehindForEnemies());
 	m_pActions.push_back(new MoveBackInBoundries());
+	m_pActions.push_back(new EscapePurgeZone);
 	//m_pActions.push_back(new CheckArea());
 
 	
@@ -55,6 +58,9 @@ Character::Character(IExamInterface* pInterface)
 	m_WorldConditions["HasHouseTarget"] = false;
 	m_WorldConditions["WasBitten"] = false;
 	m_WorldConditions["OutsideBoundries"] = false;
+	m_WorldConditions["HasItemTarget"] = true;
+	m_WorldConditions["PurgeZoneInFov"] = false;
+	m_WorldConditions["InPurgeZone"] = false;
 	
 	// Set Character goals
 	m_Goals["Survive"] = true;
@@ -80,6 +86,10 @@ void Character::Update(float dt)
 		m_EnteredHouses.clear();
 	else
 		m_EnteredHouseClearTimer += dt;
+
+	if(m_AgentInfo.Bitten)
+	{
+	}
 
 
 	std::for_each(m_EnteredHouses.begin(), m_EnteredHouses.end(), [this](Elite::Vector2 v)
@@ -119,7 +129,7 @@ void Character::Update(float dt)
 	);
 
 	m_WorldConditions["HealthLow"] = m_AgentInfo.Health < 8.f;
-	m_WorldConditions["EnergyLow"] = m_AgentInfo.Energy < 8.f;
+	m_WorldConditions["EnergyLow"] = m_AgentInfo.Energy < 2.f;
 
 	m_WorldConditions["WasBitten"] = m_AgentInfo.WasBitten;
 	
@@ -133,13 +143,6 @@ void Character::Update(float dt)
 			m_CurrentHouseTarget = m_HousesInFOV[0];
 			m_WorldConditions["HasHouseTarget"] = true;
 		}
-		
-		
-		//m_WorldConditions["InHouse"] = (m_AgentInfo.Position.x > m_CurrentHouseTarget.Center.x - (m_CurrentHouseTarget.Size.x / 2) &&
-		//	m_AgentInfo.Position.x < m_CurrentHouseTarget.Center.x + (m_CurrentHouseTarget.Size.x / 2) &&
-		//	m_AgentInfo.Position.y > m_CurrentHouseTarget.Center.y - (m_CurrentHouseTarget.Size.y / 2) &&
-		//	m_AgentInfo.Position.y < m_CurrentHouseTarget.Center.y + (m_CurrentHouseTarget.Size.y / 2));
-
 		m_WorldConditions["HouseInFov"] = true;
 	}
 	else
@@ -148,26 +151,26 @@ void Character::Update(float dt)
 		m_WorldConditions["HouseInFov"] = false;
 	}
 	
-	m_WorldConditions["ItemInFov"] = std::find_if(m_EntitiesInFOV.begin(), m_EntitiesInFOV.end(), [](EntityInfo info)
-		{
-			return info.Type == eEntityType::ITEM;
-		}) != m_EntitiesInFOV.end();
+	m_WorldConditions["ItemInFov"] = 
+		std::find_if(m_EntitiesInFOV.begin(), m_EntitiesInFOV.end(), IsType<EntityInfo,eEntityType>(eEntityType::ITEM)) != m_EntitiesInFOV.end();
 
-	m_WorldConditions["EnemyInFov"] = std::find_if(m_EntitiesInFOV.begin(), m_EntitiesInFOV.end(), [](EntityInfo info)
-		{
-			return info.Type == eEntityType::ENEMY;
-		}) != m_EntitiesInFOV.end();
+	m_WorldConditions["EnemyInFov"] = 
+		std::find_if(m_EntitiesInFOV.begin(), m_EntitiesInFOV.end(), IsType<EntityInfo, eEntityType>(eEntityType::ENEMY)) != m_EntitiesInFOV.end();
 
+	auto purgeZone = std::find_if(m_EntitiesInFOV.begin(), m_EntitiesInFOV.end(), IsType<EntityInfo, eEntityType>(eEntityType::PURGEZONE));
+	
+	m_WorldConditions["PurgeZoneInFov"] = (purgeZone != m_EntitiesInFOV.end());
+
+	if(m_WorldConditions["PurgeZoneInFov"])
+	{
+		auto purgeZoneInfo = PurgeZoneInfo{};
+		m_pInterface->PurgeZone_GetInfo(*purgeZone, purgeZoneInfo);
+		
+		m_WorldConditions["InPurgeZone"] = Elite::DistanceSquared(m_AgentInfo.Position, purgeZone->Location) < (purgeZoneInfo.Radius * purgeZoneInfo.Radius);
+	}
+		
 	
 	m_pFSM->Update(dt, this);
-
-	//std::cout << "==== Current State ====" << std::endl;
-	//auto currentPlan = m_pActionState->GetCurrentPlan();
-	//std::for_each(currentPlan.begin(), currentPlan.end(), [](Action* a)
-	//	{
-	//		std::cout << " -> " << a->GetName();
-	//	});
-	//std::cout << std::endl;
 }
 
 std::vector<Action*> Character::GetPlan() const
@@ -255,6 +258,19 @@ std::vector<ItemInfo> Character::GetInventory() const
 	return m_Inventory;
 }
 
+std::vector<ItemInfo> Character::GetItemMemory() const
+{
+	return m_ItemMemory;
+}
+
+void Character::AddItem(const EntityInfo& entity)
+{
+	ItemInfo itemInfo;
+	m_pInterface->Item_GetInfo(entity, itemInfo);
+	
+	m_ItemMemory.push_back(itemInfo);
+}
+
 bool Character::HasItemOfType(const eItemType& itemType) const
 {
 	ItemInfo itemInfo{};
@@ -285,7 +301,7 @@ int Character::GetIndexForType(const eItemType& itemType) const
 void Character::RemoveItemFromInventory(const int index)
 {
 	m_pInterface->Inventory_RemoveItem(index);
-	m_CurrentSlot = index - 1;
+	if(m_CurrentSlot > index - 1) m_CurrentSlot = index - 1;
 }
 
 void Character::SetSlot(const int index)

@@ -5,6 +5,8 @@
 #include <Exam_HelperStructs.h>
 #include <IExamInterface.h>
 
+#include "Helpers.h"
+
 
 PickupItem::PickupItem()
 {
@@ -116,17 +118,6 @@ std::string PickupItem::GetName() const
 	return "Item In Sight";
 }
 
-UINT PickupItem::GetEmptySlot(Character* pCharacter)
-{
-	for (UINT i = 0; i < pCharacter->GetInterface()->Inventory_GetCapacity(); ++i)
-	{
-		if (pCharacter->GetInventory()[i].Type == eItemType::_LAST)
-			return i;
-	}
-
-	return pCharacter->GetInterface()->Inventory_GetCapacity();
-}
-
 void PickupItem::GetItemTargetLocations(Character* pCharacter)
 {
 	auto entityInFov = pCharacter->GetEntitiesInFOV();
@@ -138,30 +129,9 @@ void PickupItem::GetItemTargetLocations(Character* pCharacter)
 			m_ItemLocations.push_back(i->Location);
 	}
 
-	std::sort(m_ItemLocations.begin(), m_ItemLocations.end(), [pCharacter](const Elite::Vector2& lhs, const Elite::Vector2& rhs)
-		{
-			return Elite::DistanceSquared(pCharacter->GetAgentInfo().Position, lhs) > Elite::DistanceSquared(pCharacter->GetAgentInfo().Position, rhs);
-		});
+	std::sort(entityInFov.begin(), entityInFov.end(), IsFurther<EntityInfo>{ pCharacter->GetAgentInfo().Position });
 	
 	m_ItemLocation = m_ItemLocations[m_ItemLocations.size() - 1];
-	
-	//while(iter !=  entityInFov.end())
-	//{
-	//	iter = std::find_if(iter, entityInFov.end(), [](EntityInfo info)
-	//		{
-	//			return info.Type == eEntityType::ITEM;
-	//		});
-	//
-	//	items.push_back(*iter);
-	//	++iter;
-	//}
-
-	//if (items.empty())
-	//	return itemInfo;
-	//
-	//
-	//return entityInFov[0];
-
 }
 
 EntityInfo PickupItem::GetCurrentItemTarget(Character* pCharacter) const
@@ -175,12 +145,8 @@ EntityInfo PickupItem::GetCurrentItemTarget(Character* pCharacter) const
 			items.push_back(*i);
 	}
 
-	std::sort(entityInFov.begin(), entityInFov.end(), [pCharacter](const EntityInfo& lhs, const EntityInfo& rhs)
-		{
-			return Elite::DistanceSquared(pCharacter->GetAgentInfo().Position, lhs.Location) > Elite::DistanceSquared(pCharacter->GetAgentInfo().Position, rhs.Location);
-		});
+	std::sort(entityInFov.begin(), entityInFov.end(), IsFurther<EntityInfo>{ pCharacter->GetAgentInfo().Position });
 
-	
 	return items[items.size() - 1];
 }
 
@@ -195,11 +161,7 @@ std::vector<EntityInfo> PickupItem::GetCurrentItemTargets(Character* pCharacter)
 			items.push_back(*i);
 	}
 
-	std::sort(entityInFov.begin(), entityInFov.end(), [pCharacter](const EntityInfo& lhs, const EntityInfo& rhs)
-		{
-			return Elite::DistanceSquared(pCharacter->GetAgentInfo().Position, lhs.Location) > Elite::DistanceSquared(pCharacter->GetAgentInfo().Position, rhs.Location);
-		});
-
+	std::sort(entityInFov.begin(), entityInFov.end(), IsFurther<EntityInfo>{ pCharacter->GetAgentInfo().Position });
 
 	return items;
 }

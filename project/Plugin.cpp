@@ -13,7 +13,7 @@ void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
 
 	//Bit information about the plugin
 	//Please fill this in!!
-	info.BotName = "Dave";
+	info.BotName = "The Dude";
 	info.Student_FirstName = "Maxim";
 	info.Student_LastName = "Robeyst";
 	info.Student_Class = "2DAE06";
@@ -43,6 +43,7 @@ void Plugin::InitGameDebugParams(GameDebugParams& params)
 	params.EnemyCount = 20; //How many enemies? (Default = 20)
 	params.GodMode = false; //GodMode > You can't die, can be usefull to inspect certain behaviours (Default = false)
 	params.AutoGrabClosestItem = true; //A call to Item_Grab(...) returns the closest item that can be grabbed. (EntityInfo argument is ignored)
+	params.SpawnPurgeZonesOnMiddleClick = true;
 }
 
 //Only Active in DEBUG Mode
@@ -61,7 +62,7 @@ void Plugin::Update(float dt)
 	}
 	else if (m_pInterface->Input_IsKeyboardKeyDown(Elite::eScancode_Space))
 	{
-		m_CanRun = true;
+		m_pCharacter->PrintWorldStates();
 	}
 	else if (m_pInterface->Input_IsKeyboardKeyDown(Elite::eScancode_Left))
 	{

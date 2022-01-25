@@ -30,7 +30,7 @@ EvadeEnemy::EvadeEnemy(const std::map<std::string, bool>& preConditions,
 
 bool EvadeEnemy::CheckProceduralPreconditions(Character* pCharacter) const
 {
-	return pCharacter->GetEnteredHouses().empty();
+	return true;
 }
 
 bool EvadeEnemy::ExecuteAction(float dt, Character* pCharacter)
@@ -61,7 +61,7 @@ bool EvadeEnemy::ExecuteAction(float dt, Character* pCharacter)
 bool EvadeEnemy::IsDone(Character* pCharacter)
 {
 	//return !pCharacter->GetConditions()["EnemyChasing"];
-	return true;
+	return false;
 }
 
 bool EvadeEnemy::RequiresInRange() const

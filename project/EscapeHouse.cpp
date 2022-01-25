@@ -6,17 +6,17 @@ EscapeHouse::EscapeHouse()
 {
 	//m_Preconditions["EnemyChasing"] = true;
 	m_Preconditions["InHouse"] = true;
-	m_Preconditions["itemInFov"] = false;
-	//m_Preconditions["EnemyInFov"] = true;
+	m_Preconditions["ItemInFov"] = false;
+	m_Preconditions["EnemyInFov"] = true;
 	m_Preconditions["HasWeapon"] = false;
-	m_Preconditions["HealthLow"] = true;
+	//m_Preconditions["HealthLow"] = true;
 	
 	//m_Preconditions["HasHouseTarget"] = false;
 	//m_Preconditions["HouseInFov"] = false;
 
 	m_Effects["Survive"] = true;
 
-	m_Cost = 2.5f;
+	m_Cost = 15.f;
 }
 
 bool EscapeHouse::CheckProceduralPreconditions(Character* pCharacter) const
@@ -31,7 +31,7 @@ bool EscapeHouse::ExecuteAction(float dt, Character* pCharacter)
 
 bool EscapeHouse::IsDone(Character* pCharacter)
 {
-	return true;
+	return false;
 }
 
 bool EscapeHouse::RequiresInRange() const

@@ -11,5 +11,8 @@ public:
 	bool RequiresInRange() const override;
 	bool IsInRange(Character* pCharacter) const override;
 	std::string GetName() const override;
+
+private:
+	
 };
 

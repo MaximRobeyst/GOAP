@@ -9,7 +9,7 @@ LookBehindForEnemies::LookBehindForEnemies()
 	m_Preconditions["HasWeapon"] = true;
 	
 	m_Effects["Survive"] = true;
-	m_Effects["EnemiesInFov"] = true;
+	m_Effects["EnemyInFov"] = true;
 
 	m_Cost = 5.f;
 }
@@ -24,7 +24,7 @@ bool LookBehindForEnemies::ExecuteAction(float dt, Character* pCharacter)
 	const auto agentInfo = pCharacter->GetAgentInfo();
 	auto steering = pCharacter->GetSteeringOutput();
 
-	steering.AutoOrient = false;
+	steering.RunMode = true;
 	steering.AngularVelocity = agentInfo.MaxAngularSpeed;
 
 	pCharacter->SetSteeringOutput(steering);
@@ -34,7 +34,6 @@ bool LookBehindForEnemies::ExecuteAction(float dt, Character* pCharacter)
 
 bool LookBehindForEnemies::IsDone(Character* pCharacter)
 {
-	std::cout << pCharacter->GetEntitiesInFOV().size() << std::endl;
 	return !pCharacter->GetEntitiesInFOV().empty();
 }
 

@@ -9,6 +9,7 @@ SearchForItems::SearchForItems()
 	//m_Preconditions["EnemyChasing"] = false;
 	//m_Preconditions["HouseInFov"] = false;
 	m_Preconditions["HasHouseTarget"] = false;
+	//m_Preconditions["EnemyInFov"] = false;
 	
 	m_Effects["Survive"] = true;
 
@@ -24,7 +25,7 @@ SearchForItems::SearchForItems(const std::map<std::string, bool>& preConditions,
 
 bool SearchForItems::CheckProceduralPreconditions(Character* pCharacter) const
 {
-	if (pCharacter->GetConditions()["HasWeapon"] && pCharacter->GetConditions()["WasBitten"])	// Special case where if these 2 are true at the same time we cannot execute
+	if (pCharacter->GetConditions()["HasWeapon"] && (pCharacter->GetConditions()["WasBitten"] || pCharacter->GetConditions()["EnemyInFov"]))	// Special case where if these 2 are true at the same time we cannot execute
 		return false;
 
 	if (pCharacter->GetConditions()["HasMedkit"] && pCharacter->GetConditions()["HealthLow"])	// if these 2 values are true at the same time we want to heal
