@@ -12,6 +12,7 @@ EnterHouse::EnterHouse()
 	//m_Preconditions["HasWeapon"] = false;
 	m_Preconditions["HasHouseTarget"] = true;
 	m_Preconditions["ItemInFov"] = false;
+	m_Preconditions["InPurgeZone"] = false;
 	//m_Preconditions["InHouse"] = false;
 
 	m_Effects["InHouse"] = true;

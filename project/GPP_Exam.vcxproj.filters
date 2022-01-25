@@ -45,9 +45,6 @@
     <ClCompile Include="EscapePurgeZone.cpp">
       <Filter>GOAP\Actions</Filter>
     </ClCompile>
-    <ClCompile Include="MoveBackInBoundries.cpp">
-      <Filter>GOAP\Actions</Filter>
-    </ClCompile>
     <ClCompile Include="LookBehindForEnemies.cpp">
       <Filter>GOAP\Actions</Filter>
     </ClCompile>
@@ -55,6 +52,18 @@
       <Filter>GOAP\Actions</Filter>
     </ClCompile>
     <ClCompile Include="EscapeHouse.cpp">
+      <Filter>GOAP\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="PatrolForEnemies.cpp">
+      <Filter>GOAP\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="MoveBackInBoundaries.cpp">
+      <Filter>GOAP\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="NeedsFood.cpp">
+      <Filter>GOAP\Actions</Filter>
+    </ClCompile>
+    <ClCompile Include="NeedsGun.cpp">
       <Filter>GOAP\Actions</Filter>
     </ClCompile>
   </ItemGroup>
@@ -106,9 +115,6 @@
     <ClInclude Include="EscapePurgeZone.h">
       <Filter>GOAP\Actions</Filter>
     </ClInclude>
-    <ClInclude Include="MoveBackInBoundries.h">
-      <Filter>GOAP\Actions</Filter>
-    </ClInclude>
     <ClInclude Include="LookBehindForEnemies.h">
       <Filter>GOAP\Actions</Filter>
     </ClInclude>
@@ -120,6 +126,18 @@
     </ClInclude>
     <ClInclude Include="Helpers.h">
       <Filter>GOAP</Filter>
+    </ClInclude>
+    <ClInclude Include="PatrolForEnemies.h">
+      <Filter>GOAP\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="MoveBackInBoundaries.h">
+      <Filter>GOAP\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="NeedsFood.h">
+      <Filter>GOAP\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="NeedsGun.h">
+      <Filter>GOAP\Actions</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

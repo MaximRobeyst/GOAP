@@ -10,8 +10,11 @@
 
 PickupItem::PickupItem()
 {
-	m_Preconditions["ItemInFov"] = true;
+	//m_Preconditions["ItemInFov"] = true;
 	m_Preconditions["InventoryFull"] = false;
+	m_Preconditions["HasItemTarget"] = true;
+	m_Preconditions["EnergyLow"] = false;
+	m_Preconditions["InPurgeZone"] = false;
 
 	m_Effects["Survive"] = true;
 
@@ -20,50 +23,43 @@ PickupItem::PickupItem()
 
 bool PickupItem::CheckProceduralPreconditions(Character* pCharacter) const
 {
+	if (pCharacter->GetConditions()["HealthLow"] && pCharacter->GetConditions()["HasMedkit"])
+		return false;
+	if (pCharacter->GetConditions()["EnergyLow"] && pCharacter->GetConditions()["HasFood"])
+		return false;
+	
 	return true;
 }
 
 bool PickupItem::ExecuteAction(float dt, Character* pCharacter)
 {
-	GetItemTargetLocations(pCharacter);
+	auto itemMemory = pCharacter->GetItemMemory();
+	const auto entityInFov = pCharacter->GetEntitiesInFOV();
 
-	if (!m_ItemLocations.empty())
-		pCharacter->GetConditions()["ItemInFov"] = true;
-
-	std::for_each(m_ItemLocations.begin(), m_ItemLocations.end(), [pCharacter](const Elite::Vector2& v)
-		{
-			pCharacter->GetInterface()->Draw_Point(v, 6.f, Elite::Vector3{ 1,0,0 }, 0.4f);
-		});
-	std::cout << m_ItemLocations.size() << std::endl;
-	
-	const auto info = GetCurrentItemTarget(pCharacter);
+	const auto info = pCharacter->GetCurrentItemTarget();
 	ItemInfo itemInfo;
 
 	auto steering = pCharacter->GetSteeringOutput();
 	steering.AutoOrient = true;
-	pCharacter->SetSteeringOutput(steering);
+
+	const auto iter = std::find_if(entityInFov.begin(), entityInFov.end(), SameLocation{info});
 	
-	if (IsInRange(pCharacter))
+	if (IsInRange(pCharacter) && iter != entityInFov.end())
 	{
-		
-		if(Elite::DistanceSquared(pCharacter->GetAgentInfo().Position, info.Location) < m_TooCloseRange * m_TooCloseRange)
+		if(Elite::DistanceSquared(pCharacter->GetAgentInfo().Position, pCharacter->GetCurrentItemTarget()) < (m_TooCloseRange * m_TooCloseRange))
 		{
-			auto agentInfo = pCharacter->GetAgentInfo();
-			agentInfo.LinearVelocity = itemInfo.Location - agentInfo.Position;
-			agentInfo.LinearVelocity.Normalize();
-			agentInfo.LinearVelocity *= -agentInfo.MaxLinearSpeed;
-			
-			pCharacter->SetAgentInfo(agentInfo);
+			steering.LinearVelocity = { iter->Location - pCharacter->GetAgentInfo().Position };
+			steering.LinearVelocity.Normalize();
+			steering.LinearVelocity *= pCharacter->GetAgentInfo().MaxLinearSpeed;
 		}
 		else
 		{
-			if (pCharacter->GetInterface()->Item_Grab(info, itemInfo))
+			if (pCharacter->GetInterface()->Item_Grab(*iter, itemInfo))
 			{
 				m_ItemAdded = pCharacter->GetInterface()->Inventory_AddItem(pCharacter->GetSlot(), itemInfo);
-				m_ItemLocations.pop_back();
-				if(m_ItemAdded)
+				if (m_ItemAdded)
 				{
-					
+					pCharacter->PopItemFromMemory();
 					switch (itemInfo.Type)
 					{
 					case eItemType::MEDKIT:
@@ -80,20 +76,19 @@ bool PickupItem::ExecuteAction(float dt, Character* pCharacter)
 						break;
 					}
 				}
-				
+
 				pCharacter->SetSlot(pCharacter->GetSlot() + 1);
 			}
 		}
 	}
+	pCharacter->SetSteeringOutput(steering);
 	
 	return true;
 }
 
 bool PickupItem::IsDone(Character* pCharacter)
 {
-	bool done = m_ItemLocations.empty() && m_ItemAdded;
-	
-	return done;
+	return pCharacter->GetItemMemory().empty() && m_ItemAdded;
 }
 
 bool PickupItem::RequiresInRange() const
@@ -103,14 +98,14 @@ bool PickupItem::RequiresInRange() const
 
 bool PickupItem::IsInRange(Character* pCharacter) const
 {
-	const float distanceSquared = Elite::DistanceSquared(pCharacter->GetAgentInfo().Position, m_ItemLocation);
+	const float distanceSquared = Elite::DistanceSquared(pCharacter->GetAgentInfo().Position, pCharacter->GetCurrentItemTarget());
 	
 	return distanceSquared < (pCharacter->GetAgentInfo().GrabRange * pCharacter->GetAgentInfo().GrabRange);
 }
 
 Elite::Vector2 PickupItem::GetTarget(Character* pCharacter)
 {
-	return m_ItemLocation;
+	return pCharacter->GetCurrentItemTarget();
 }
 
 std::string PickupItem::GetName() const
@@ -118,50 +113,51 @@ std::string PickupItem::GetName() const
 	return "Item In Sight";
 }
 
-void PickupItem::GetItemTargetLocations(Character* pCharacter)
-{
-	auto entityInFov = pCharacter->GetEntitiesInFOV();
-
-	for(auto i = entityInFov.begin(); i != entityInFov.end(); ++i)
-	{
-		if (i->Type == eEntityType::ITEM && 
-			std::find_if(m_ItemLocations.begin(), m_ItemLocations.end(), [i](const Elite::Vector2& info){ return info == i->Location;}) == m_ItemLocations.end())
-			m_ItemLocations.push_back(i->Location);
-	}
-
-	std::sort(entityInFov.begin(), entityInFov.end(), IsFurther<EntityInfo>{ pCharacter->GetAgentInfo().Position });
-	
-	m_ItemLocation = m_ItemLocations[m_ItemLocations.size() - 1];
-}
-
-EntityInfo PickupItem::GetCurrentItemTarget(Character* pCharacter) const
-{
-	auto entityInFov = pCharacter->GetEntitiesInFOV();
-	std::vector<EntityInfo> items{};
-
-	for (auto i = entityInFov.begin(); i != entityInFov.end(); ++i)
-	{
-		if (i->Type == eEntityType::ITEM)
-			items.push_back(*i);
-	}
-
-	std::sort(entityInFov.begin(), entityInFov.end(), IsFurther<EntityInfo>{ pCharacter->GetAgentInfo().Position });
-
-	return items[items.size() - 1];
-}
-
-std::vector<EntityInfo> PickupItem::GetCurrentItemTargets(Character* pCharacter) const
-{
-	auto entityInFov = pCharacter->GetEntitiesInFOV();
-	std::vector<EntityInfo> items{};
-
-	for (auto i = entityInFov.begin(); i != entityInFov.end(); ++i)
-	{
-		if (i->Type == eEntityType::ITEM)
-			items.push_back(*i);
-	}
-
-	std::sort(entityInFov.begin(), entityInFov.end(), IsFurther<EntityInfo>{ pCharacter->GetAgentInfo().Position });
-
-	return items;
-}
+//void PickupItem::GetItemTargetLocations(Character* pCharacter)
+//{
+//	auto entityInFov = pCharacter->GetEntitiesInFOV();
+//	const auto itemMemory = pCharacter->GetItemMemory();
+//
+//	for(auto i = entityInFov.begin(); i != entityInFov.end(); ++i)
+//	{
+//		if (i->Type == eEntityType::ITEM &&
+//			std::find_if(itemMemory.begin(), itemMemory.end(), [i](const Elite::Vector2& info) { return info == i->Location; }) == itemMemory.end())
+//			pCharacter->AddItemToMemory(*i);
+//	}
+//
+//	//std::sort(entityInFov.begin(), entityInFov.end(), IsFurther<EntityInfo>{ pCharacter->GetAgentInfo().Position });
+//	
+//	m_ItemLocation = m_ItemLocations[m_ItemLocations.size() - 1];
+//}
+//
+//EntityInfo PickupItem::GetCurrentItemTarget(Character* pCharacter) const
+//{
+//	auto entityInFov = pCharacter->GetEntitiesInFOV();
+//	std::vector<EntityInfo> items{};
+//
+//	for (auto i = entityInFov.begin(); i != entityInFov.end(); ++i)
+//	{
+//		if (i->Type == eEntityType::ITEM)
+//			items.push_back(*i);
+//	}
+//
+//	std::sort(entityInFov.begin(), entityInFov.end(), IsFurther<EntityInfo>{ pCharacter->GetAgentInfo().Position });
+//
+//	return items[items.size() - 1];
+//}
+//
+//std::vector<EntityInfo> PickupItem::GetCurrentItemTargets(Character* pCharacter) const
+//{
+//	auto entityInFov = pCharacter->GetEntitiesInFOV();
+//	std::vector<EntityInfo> items{};
+//
+//	for (auto i = entityInFov.begin(); i != entityInFov.end(); ++i)
+//	{
+//		if (i->Type == eEntityType::ITEM)
+//			items.push_back(*i);
+//	}
+//
+//	std::sort(entityInFov.begin(), entityInFov.end(), IsFurther<EntityInfo>{ pCharacter->GetAgentInfo().Position });
+//
+//	return items;
+//}

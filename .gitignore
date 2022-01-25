@@ -85,3 +85,10 @@ project/_Temp/Release/stdafx.obj
 project/_Temp/Release/UseFood.obj
 project/_Temp/Release/UseMedkit.obj
 project/_Temp/Release/GPP_Exam.tlog/unsuccessfulbuild
+project/_Temp/Release/PatrolForEnemies.obj
+project/_Temp/Release/NeedsGun.obj
+project/_Temp/Release/NeedsFood.obj
+project/_Temp/Release/MoveBackInBoundaries.obj
+project/_Temp/Debug/PatrolForEnemies.obj
+project/_Temp/Debug/NeedsFood.obj
+project/_Temp/Debug/MoveBackInBoundaries.obj

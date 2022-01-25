@@ -43,10 +43,15 @@ bool EscapePurgeZone::IsInRange(Character* pCharacter) const
 	PurgeZoneInfo purgeZoneInfo{};
 	pCharacter->GetInterface()->PurgeZone_GetInfo(*purgeZone, purgeZoneInfo);
 	
-	return Elite::DistanceSquared(pCharacter->GetAgentInfo().Position, purgeZone->Location) < (purgeZoneInfo.Radius * purgeZoneInfo.Radius);
+	return Elite::DistanceSquared(pCharacter->GetAgentInfo().Position, purgeZone->Location) > (purgeZoneInfo.Radius * purgeZoneInfo.Radius);
 }
 
 std::string EscapePurgeZone::GetName() const
 {
 	return "Escape purge zone";
+}
+
+Elite::Vector2 EscapePurgeZone::GetTarget(Character* pCharacter)
+{
+	return Elite::Vector2{};
 }

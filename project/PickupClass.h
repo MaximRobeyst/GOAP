@@ -19,15 +19,15 @@ public:
 	Elite::Vector2 GetTarget(Character* pCharacter) override;
 	std::string GetName() const override;
 private:
-	UINT GetEmptySlot(Character* pCharacter);
-	void GetItemTargetLocations(Character* pCharacter);
-	EntityInfo GetCurrentItemTarget(Character* pCharacter) const;
-	std::vector<EntityInfo> GetCurrentItemTargets(Character* pCharacter) const;
+	//UINT GetEmptySlot(Character* pCharacter);
+	//void GetItemTargetLocations(Character* pCharacter);
+	//EntityInfo GetCurrentItemTarget(Character* pCharacter) const;
+	//std::vector<EntityInfo> GetCurrentItemTargets(Character* pCharacter) const;
 
 	float m_Range{ 0.5f };
 	float m_TooCloseRange{ 1.f };
 	bool m_ItemAdded{ false };
-	Elite::Vector2 m_ItemLocation;
-	std::vector<Elite::Vector2> m_ItemLocations{};
+	//Elite::Vector2 m_ItemLocation;
+	//std::vector<Elite::Vector2> m_ItemLocations{};
 	int m_SlotId{ 0 };
 };

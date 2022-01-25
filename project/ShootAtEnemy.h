@@ -16,7 +16,6 @@ public:
 	bool IsInRange(Character* pCharacter) const override;
 	virtual std::string GetName() const override { return "Shoot at enemy"; };
 private:
-	float m_ShootCooldown{};
-	float m_Timer{};
+	int m_CurrentWeaponIndex{-1};
 };
 

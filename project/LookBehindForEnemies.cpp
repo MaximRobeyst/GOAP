@@ -25,6 +25,7 @@ bool LookBehindForEnemies::ExecuteAction(float dt, Character* pCharacter)
 	auto steering = pCharacter->GetSteeringOutput();
 
 	steering.RunMode = true;
+	steering.AutoOrient = false;
 	steering.AngularVelocity = agentInfo.MaxAngularSpeed;
 
 	pCharacter->SetSteeringOutput(steering);
@@ -34,6 +35,14 @@ bool LookBehindForEnemies::ExecuteAction(float dt, Character* pCharacter)
 
 bool LookBehindForEnemies::IsDone(Character* pCharacter)
 {
+
+	auto steering = pCharacter->GetSteeringOutput();
+
+	steering.RunMode = false;
+	steering.AutoOrient = true;
+
+	pCharacter->SetSteeringOutput(steering);
+	
 	return !pCharacter->GetEntitiesInFOV().empty();
 }
 

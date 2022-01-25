@@ -41,12 +41,16 @@ public:
 	std::vector<EntityInfo> GetEntitiesInFOV() const;
 	std::vector<ItemInfo> GetInventory() const;
 
-	std::vector<ItemInfo> GetItemMemory() const;
-	void AddItem(const EntityInfo& entity);
+	std::vector<Elite::Vector2> GetItemMemory() const;
+	void AddItemToMemory(const EntityInfo& entity);
+	void PopItemFromMemory();
+	
+	Elite::Vector2 GetCurrentItemTarget() const;
 	
 	// Inventory functionality
 	bool HasItemOfType(const eItemType& itemType) const;
 	int GetIndexForType(const eItemType& itemType) const;
+	int HasAmountOfType(const eItemType& itemType) const;
 	
 	void RemoveItemFromInventory(const int index);
 	void SetSlot(const int index);
@@ -72,7 +76,6 @@ private:
 	std::vector<EntityInfo> m_EntitiesInFOV{};
 	std::vector<ItemInfo> m_Inventory{};
 
-	std::vector<ItemInfo> m_ItemMemory{};
 
 	Elite::Vector2 m_Target{};
 	
@@ -83,8 +86,12 @@ private:
 	Planner* m_pPlanner;					// Planner that will find plans for our character
 
 	std::vector<Action*> m_pActions;		// Al the actions the character has
+	
 	std::vector<Elite::Vector2> m_EnteredHouses{};
 	HouseInfo m_CurrentHouseTarget{};
+
+	std::vector<Elite::Vector2> m_ItemMemory{};
+	Elite::Vector2 m_CurrentItemTarget{};
 
 	std::map<std::string, bool> m_WorldConditions{};	// All the condition the world has
 	std::map<std::string, bool> m_Goals{};				// the goals the player has

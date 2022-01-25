@@ -1,10 +1,11 @@
 #pragma once
 #include "ConditionsAndActions.h"
 
-class EscapePurgeZone final : public Action
+class MoveBackInBoundaries final : public Action
 {
 public:
-	EscapePurgeZone();
+	MoveBackInBoundaries();
+
 
 	bool CheckProceduralPreconditions(Character* pCharacter) const override;
 	bool ExecuteAction(float dt, Character* pCharacter) override;

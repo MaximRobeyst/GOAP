@@ -9,7 +9,7 @@ ExitHouse::ExitHouse()
 {
 	m_Preconditions["EnemyChasing"] = true;
 	//m_Preconditions["HouseInFov"] = true;
-	m_Preconditions["ItemInFov"] = false;
+	m_Preconditions["HasItemTarget"] = false;
 	m_Preconditions["InHouse"] = true;
 	m_Preconditions["WasBitten"] = false;
 	m_Preconditions["EnemyInFov"] = false;
@@ -29,6 +29,8 @@ bool ExitHouse::CheckProceduralPreconditions(Character* pCharacter) const
 bool ExitHouse::ExecuteAction(float dt, Character* pCharacter)
 {
 	m_ExitHouseTimer += dt;
+	if (IsInRange(pCharacter))
+		m_ExitHouseTimer = 0;
 
 	if (m_ExitHouseTimer >= m_MaxTimeInHouse)
 		MoveTowardsExit(pCharacter);
@@ -99,13 +101,43 @@ void ExitHouse::MoveTowardsExit(Character* pCharacter)
 void ExitHouse::WanderInHouse(float dt, Character* pCharacter)
 {
 	auto steering = pCharacter->GetSteeringOutput();
-
-	m_WanderAngle += Elite::randomFloat(-Elite::ToRadians(30.f), Elite::ToRadians(30.f));
-	const Elite::Vector2 target = pCharacter->GetAgentInfo().Position + pCharacter->GetAgentInfo().LinearVelocity.GetNormalized() * 6.f + (Elite::Vector2(cosf(m_WanderAngle) * 4.f, sinf(m_WanderAngle) * 4.f));
-
-	steering.LinearVelocity = target - pCharacter->GetAgentInfo().Position;
-	steering.LinearVelocity.Normalize();
-	steering.LinearVelocity *= pCharacter->GetAgentInfo().MaxLinearSpeed;
 	
+	if (pCharacter->GetHousesInFOV().empty())
+	{
+		m_WanderAngle += Elite::randomFloat(-Elite::ToRadians(30.f), Elite::ToRadians(30.f));
+		const Elite::Vector2 target = pCharacter->GetAgentInfo().Position + pCharacter->GetAgentInfo().LinearVelocity.GetNormalized() * 6.f + (Elite::Vector2(cosf(m_WanderAngle) * 4.f, sinf(m_WanderAngle) * 4.f));
+
+		steering.LinearVelocity = target - pCharacter->GetAgentInfo().Position;
+		steering.LinearVelocity.Normalize();
+		steering.LinearVelocity *= pCharacter->GetAgentInfo().MaxLinearSpeed;
+	}
+	else
+	{
+		const HouseInfo houseInfo = pCharacter->GetHousesInFOV()[0];
+		Elite::Vector2 housePoints[4] =
+		{
+			{houseInfo.Center.x - ((houseInfo.Size.x / 2) - 5.f), houseInfo.Center.y - ((houseInfo.Size.y / 2) - 5.f)},
+			{houseInfo.Center.x + ((houseInfo.Size.x / 2) - 5.f), houseInfo.Center.y - ((houseInfo.Size.y / 2) - 5.f)},
+			{houseInfo.Center.x + ((houseInfo.Size.x / 2) - 5.f), houseInfo.Center.y + ((houseInfo.Size.y / 2) - 5.f)},
+			{houseInfo.Center.x - ((houseInfo.Size.x / 2) - 5.f), houseInfo.Center.y + ((houseInfo.Size.y / 2) - 5.f)}
+		};
+
+		pCharacter->GetInterface()->Draw_Polygon(&housePoints[0], 4, Elite::Vector3{ 1,1,0 }, 0.9f);
+
+		steering.LinearVelocity = housePoints[m_Index] - pCharacter->GetAgentInfo().Position;
+		steering.LinearVelocity.Normalize();
+		steering.LinearVelocity *= pCharacter->GetAgentInfo().MaxLinearSpeed;
+
+		if (Elite::DistanceSquared(pCharacter->GetAgentInfo().Position, housePoints[m_Index]) < (pointRange * pointRange))
+		{
+			++m_Index;
+			if(m_Index >= 4)
+			{
+				m_ExitHouseTimer = m_MaxTimeInHouse;
+				m_Index = 0;
+			}
+		}
+		
+	}
 	pCharacter->SetSteeringOutput(steering);
 }

@@ -16,11 +16,14 @@
 #include "EscapeHouse.h"
 #include "EscapePurgeZone.h"
 #include "Helpers.h"
-#include "MoveBackInBoundries.h"
 #include "PickupClass.h"
 #include "SearchForItems.h"
 #include "ShootAtEnemy.h"
 #include "LookBehindForEnemies.h"
+#include "MoveBackInBoundaries.h"
+#include "NeedsFood.h"
+#include "NeedsGun.h"
+#include "PatrolForEnemies.h"
 #include "UseFood.h"
 #include "UseMedkit.h"
 
@@ -38,10 +41,29 @@ Character::Character(IExamInterface* pInterface)
 	m_pActions.push_back(new ExitHouse());
 	m_pActions.push_back(new UseMedkit());
 	m_pActions.push_back(new UseFood());
-	m_pActions.push_back(new EscapeHouse());
+	//m_pActions.push_back(new EscapeHouse());
 	m_pActions.push_back(new LookBehindForEnemies());
-	m_pActions.push_back(new MoveBackInBoundries());
+	m_pActions.push_back(new MoveBackInBoundaries());
 	m_pActions.push_back(new EscapePurgeZone);
+	m_pActions.push_back(new PatrolForEnemies());
+	m_pActions.push_back(new NeedsFood());
+	m_pActions.push_back(new NeedsGun());
+
+	// When Our food is low we want a custom type of search for items
+	m_pActions.push_back(new SearchForItems(
+		std::map<std::string, bool> 
+		{
+			{"FoodLow", true},
+			{"HasFood", false},
+		},
+		std::map<std::string, bool> 
+		{
+			{"FoodLow", false},
+			{"HasFood", true},
+			{"Survive", true}
+		},
+		15.f
+		));
 	//m_pActions.push_back(new CheckArea());
 
 	
@@ -58,7 +80,7 @@ Character::Character(IExamInterface* pInterface)
 	m_WorldConditions["HasHouseTarget"] = false;
 	m_WorldConditions["WasBitten"] = false;
 	m_WorldConditions["OutsideBoundries"] = false;
-	m_WorldConditions["HasItemTarget"] = true;
+	m_WorldConditions["HasItemTarget"] = false;
 	m_WorldConditions["PurgeZoneInFov"] = false;
 	m_WorldConditions["InPurgeZone"] = false;
 	
@@ -81,15 +103,16 @@ Character::~Character()
 void Character::Update(float dt)
 {
 	m_WorldConditions["InventoryFull"] = m_CurrentSlot == 5;
+	if(m_WorldConditions["InventoryFull"])
 
 	if (m_EnteredHouseClearTimer >= m_EnteredHouseClearTime)
 		m_EnteredHouses.clear();
 	else
 		m_EnteredHouseClearTimer += dt;
 
-	if(m_AgentInfo.Bitten)
-	{
-	}
+	//if(m_AgentInfo.Bitten)
+	//{
+	//}
 
 
 	std::for_each(m_EnteredHouses.begin(), m_EnteredHouses.end(), [this](Elite::Vector2 v)
@@ -140,7 +163,7 @@ void Character::Update(float dt)
 				return v == m_HousesInFOV[0].Center;
 			}) == m_EnteredHouses.end())
 		{
-			m_CurrentHouseTarget = m_HousesInFOV[0];
+			m_CurrentHouseTarget = *std::min_element(m_HousesInFOV.begin(), m_HousesInFOV.end(), IsCloser(m_AgentInfo.Position));
 			m_WorldConditions["HasHouseTarget"] = true;
 		}
 		m_WorldConditions["HouseInFov"] = true;
@@ -150,9 +173,32 @@ void Character::Update(float dt)
 		m_WorldConditions["InHouse"] = false;
 		m_WorldConditions["HouseInFov"] = false;
 	}
+
+	const auto itemTarget = std::find_if(m_EntitiesInFOV.begin(), m_EntitiesInFOV.end(), IsType<EntityInfo, eEntityType>(eEntityType::ITEM));
+	m_WorldConditions["ItemInFov"] = itemTarget != m_EntitiesInFOV.end();
+	if(m_WorldConditions["ItemInFov"])
+	{
+		for(const auto& entityInfo : m_EntitiesInFOV)
+		{
+			if(entityInfo.Type == eEntityType::ITEM)
+			{
+				AddItemToMemory(entityInfo);
+				if (IsCloser(m_AgentInfo.Position)(itemTarget->Location, m_CurrentItemTarget))
+				{
+					m_CurrentItemTarget = itemTarget->Location;
+				}
+			}
+		}
+	}
+	m_WorldConditions["HasItemTarget"] = m_CurrentItemTarget != Elite::Vector2{} && !m_WorldConditions["InventoryFull"];
+
+	std::for_each(m_ItemMemory.begin(), m_ItemMemory.end(), [this](const Elite::Vector2& v)
+		{
+			m_pInterface->Draw_Circle(v, 1.f, Elite::Vector3{ 0.5f,1,0.f }, 0.9f);
+		});
+
+	m_pInterface->Draw_Circle(m_CurrentItemTarget, 2.f, Elite::Vector3{ 0,1,0.5f }, 0.9f);
 	
-	m_WorldConditions["ItemInFov"] = 
-		std::find_if(m_EntitiesInFOV.begin(), m_EntitiesInFOV.end(), IsType<EntityInfo,eEntityType>(eEntityType::ITEM)) != m_EntitiesInFOV.end();
 
 	m_WorldConditions["EnemyInFov"] = 
 		std::find_if(m_EntitiesInFOV.begin(), m_EntitiesInFOV.end(), IsType<EntityInfo, eEntityType>(eEntityType::ENEMY)) != m_EntitiesInFOV.end();
@@ -168,6 +214,8 @@ void Character::Update(float dt)
 		
 		m_WorldConditions["InPurgeZone"] = Elite::DistanceSquared(m_AgentInfo.Position, purgeZone->Location) < (purgeZoneInfo.Radius * purgeZoneInfo.Radius);
 	}
+
+	//m_WorldConditions["HasWeapon"] = HasItemOfType(eItemType::PISTOL);
 		
 	
 	m_pFSM->Update(dt, this);
@@ -258,17 +306,47 @@ std::vector<ItemInfo> Character::GetInventory() const
 	return m_Inventory;
 }
 
-std::vector<ItemInfo> Character::GetItemMemory() const
+std::vector<Elite::Vector2> Character::GetItemMemory() const
 {
 	return m_ItemMemory;
 }
 
-void Character::AddItem(const EntityInfo& entity)
+void Character::AddItemToMemory(const EntityInfo& entity)
 {
 	ItemInfo itemInfo;
 	m_pInterface->Item_GetInfo(entity, itemInfo);
-	
-	m_ItemMemory.push_back(itemInfo);
+
+	if (std::find_if(m_ItemMemory.begin(), m_ItemMemory.end(), SameLocation(m_CurrentItemTarget)) == m_ItemMemory.end())
+		//[this](const ItemInfo& itemInfo){return itemInfo.Location == m_CurrentItemTarget;}) == m_ItemMemory.end())
+	{
+		m_ItemMemory.push_back(itemInfo.Location);
+	}
+
+	std::sort(m_ItemMemory.begin(), m_ItemMemory.end(), IsFurther(m_AgentInfo.Position));
+
+
+	if (m_CurrentItemTarget == Elite::Vector2{})
+	{
+		m_CurrentItemTarget = entity.Location;
+		m_WorldConditions["HasItemTarget"] = true;
+	}
+}
+
+void Character::PopItemFromMemory()
+{
+	m_ItemMemory.pop_back();
+	if (m_ItemMemory.empty())
+	{
+		m_CurrentItemTarget = Elite::Vector2{};
+		m_WorldConditions["HasItemTarget"] = false;
+	}
+	else
+		m_CurrentItemTarget = m_ItemMemory[m_ItemMemory.size() - 1];
+}
+
+Elite::Vector2 Character::GetCurrentItemTarget() const
+{
+	return m_CurrentItemTarget;
 }
 
 bool Character::HasItemOfType(const eItemType& itemType) const
@@ -278,7 +356,7 @@ bool Character::HasItemOfType(const eItemType& itemType) const
 	for(UINT slotId{}; slotId < m_pInterface->Inventory_GetCapacity(); ++slotId)
 	{
 		m_pInterface->Inventory_GetItem(slotId, itemInfo);
-		if (itemInfo.Type == itemType)
+		if (itemInfo.Type == itemType && itemInfo.ItemHash != 0)
 			return true;
 	}
 
@@ -288,14 +366,30 @@ bool Character::HasItemOfType(const eItemType& itemType) const
 int Character::GetIndexForType(const eItemType& itemType) const
 {
 	ItemInfo itemInfo{};
-	int slotId{-1};
-	do
-	{
-		++slotId;
-		m_pInterface->Inventory_GetItem(slotId, itemInfo);
-	} while (itemInfo.Type != itemType && slotId < static_cast<int>(m_pInterface->Inventory_GetCapacity()));
 
-	return slotId;
+	for (UINT slotId{}; slotId < m_pInterface->Inventory_GetCapacity(); ++slotId)
+	{
+		m_pInterface->Inventory_GetItem(slotId, itemInfo);
+		if (itemInfo.Type == itemType && itemInfo.ItemHash != 0)
+			return slotId;
+	}
+	
+	return -1;
+}
+
+int Character::HasAmountOfType(const eItemType& itemType) const
+{
+	int amount{};
+	ItemInfo itemInfo{};
+	
+	for (UINT slotId{}; slotId < m_pInterface->Inventory_GetCapacity(); ++slotId)
+	{
+		m_pInterface->Inventory_GetItem(slotId, itemInfo);
+		if (itemInfo.Type == itemType)
+			++amount;
+	}
+
+	return amount;
 }
 
 void Character::RemoveItemFromInventory(const int index)
@@ -360,8 +454,8 @@ void Character::MakeFSM()
 {
 	m_pActionState = new ActionState(this);
 	m_pMoveState = new MoveState();
-	ToMoveTransition* pMoveTransition = new ToMoveTransition();
-	ToActionTransition* pActionTransition = new ToActionTransition();
+	const auto pMoveTransition = new ToMoveTransition();
+	const auto pActionTransition = new ToActionTransition();
 
 	m_pFSM = new FiniteStateMachine(m_pActionState);
 	

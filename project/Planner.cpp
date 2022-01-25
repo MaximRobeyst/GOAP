@@ -90,7 +90,7 @@ bool Planner::BuildGraph(PlanNode* startNode, std::vector<PlanNode*>& leaves, co
 			{
 				// no solution test other actions
 				std::vector<Action*> subset = usableActions;
-				std::remove(subset.begin(), subset.end(), action);
+				subset.erase(std::remove(subset.begin(), subset.end(), action));
 
 				const bool found = BuildGraph(node, leaves, subset, goal);
 				if (found)

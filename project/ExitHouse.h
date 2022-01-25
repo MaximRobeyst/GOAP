@@ -26,6 +26,9 @@ private:
 
 	float m_ExitHouseTimer{ 0.f };
 	float m_MaxTimeInHouse{ 14.f };
+
+	int m_Index{ 0 };
+	float pointRange{ 2.f };
 	
 	bool m_Done{ false };
 	bool m_GoToCenter{ true };

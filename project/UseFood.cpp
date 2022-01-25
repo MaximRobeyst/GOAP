@@ -13,6 +13,8 @@ UseFood::UseFood()
 	m_Effects["Energylow"] = false;
 	m_Effects["HasFood"] = false;
 	m_Effects["Survive"] = true;
+
+	m_Cost = 1.5f;
 }
 
 bool UseFood::CheckProceduralPreconditions(Character* pCharacter) const

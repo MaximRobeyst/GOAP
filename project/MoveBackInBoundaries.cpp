@@ -1,10 +1,10 @@
 #include "stdafx.h"
-#include "MoveBackInBoundries.h"
+#include "MoveBackInBoundaries.h"
 #include "Character.h"
 
 #include <IExamInterface.h>
 
-MoveBackInBoundries::MoveBackInBoundries()
+MoveBackInBoundaries::MoveBackInBoundaries()
 {
 	m_Preconditions["OutsideBoundries"] = true;
 	m_Preconditions["InHouse"] = false;
@@ -15,27 +15,27 @@ MoveBackInBoundries::MoveBackInBoundries()
 	m_Cost = 1.f;
 }
 
-bool MoveBackInBoundries::CheckProceduralPreconditions(Character* pCharacter) const
+bool MoveBackInBoundaries::CheckProceduralPreconditions(Character* pCharacter) const
 {
 	return true;
 }
 
-bool MoveBackInBoundries::ExecuteAction(float dt, Character* pCharacter)
+bool MoveBackInBoundaries::ExecuteAction(float dt, Character* pCharacter)
 {
 	return true;
 }
 
-bool MoveBackInBoundries::IsDone(Character* pCharacter)
+bool MoveBackInBoundaries::IsDone(Character* pCharacter)
 {
 	return true;
 }
 
-bool MoveBackInBoundries::RequiresInRange() const
+bool MoveBackInBoundaries::RequiresInRange() const
 {
 	return true;
 }
 
-bool MoveBackInBoundries::IsInRange(Character* pCharacter) const
+bool MoveBackInBoundaries::IsInRange(Character* pCharacter) const
 {
 	auto dimensions = pCharacter->GetInterface()->World_GetInfo().Dimensions;
 	return (pCharacter->GetAgentInfo().Position.x > -dimensions.x / 3 &&
@@ -44,12 +44,12 @@ bool MoveBackInBoundries::IsInRange(Character* pCharacter) const
 		pCharacter->GetAgentInfo().Position.y < (dimensions.y / 3));
 }
 
-std::string MoveBackInBoundries::GetName() const
+std::string MoveBackInBoundaries::GetName() const
 {
 	return "Move back in boundries";
 }
 
-Elite::Vector2 MoveBackInBoundries::GetTarget(Character* pCharacter)
+Elite::Vector2 MoveBackInBoundaries::GetTarget(Character* pCharacter)
 {
 	return Elite::Vector2{};
 }

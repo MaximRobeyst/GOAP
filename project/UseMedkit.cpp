@@ -25,7 +25,7 @@ bool UseMedkit::ExecuteAction(float dt, Character* pCharacter)
 	const auto index = pCharacter->GetIndexForType(eItemType::MEDKIT);
 	ItemInfo itemInfo{};
 
-	if (index >= pCharacter->GetInterface()->Inventory_GetCapacity())
+	if (static_cast<UINT>(index) >= pCharacter->GetInterface()->Inventory_GetCapacity())
 		return false;
 	
 	pCharacter->GetInterface()->Inventory_GetItem(index, itemInfo);

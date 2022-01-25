@@ -31,28 +31,26 @@ bool ShootAtEnemy::CheckProceduralPreconditions(Character* pCharacter) const
 bool ShootAtEnemy::ExecuteAction(float dt, Character* pCharacter)
 {
 	auto entityList = pCharacter->GetEntitiesInFOV();
-	
-	auto agentInfo = pCharacter->GetAgentInfo();
+
+	const auto agentInfo = pCharacter->GetAgentInfo();
 	auto steering = pCharacter->GetSteeringOutput();
-	
-	std::sort(entityList.begin(), entityList.end(), IsCloser<EntityInfo>(agentInfo.Position));
-	
+
+	// Sort from closest to furthest
+	std::sort(entityList.begin(), entityList.end(), IsCloser(agentInfo.Position));
+	// Get the first enemy you find because that will be the closest one
 	EntityInfo info = *std::find_if(entityList.begin(), entityList.end(), IsType<EntityInfo, eEntityType>(eEntityType::ENEMY));
 
-
-	float personalSpace = pCharacter->GetAgentInfo().FOV_Range * 0.05f;
-	float smallAngle = pCharacter->GetAgentInfo().FOV_Range * 0.333333f;
-	float mediumAngle = pCharacter->GetAgentInfo().FOV_Range * 0.6666666f;
+	// Get certain radiuses because if the enemy is closer the max angle can be bigger
+	const float personalSpace = pCharacter->GetAgentInfo().FOV_Range * 0.05f;
+	const float smallAngle = pCharacter->GetAgentInfo().FOV_Range * 0.333333f;
+	const float mediumAngle = pCharacter->GetAgentInfo().FOV_Range * 0.6666666f;
 	// The big anlge is just the fov range
-	
-	steering.AutoOrient = false;
-	steering.AngularVelocity = pCharacter->GetAgentInfo().MaxAngularSpeed;
-	std::cout << "Angular Velocity" << steering.AngularVelocity << std::endl;
 
 	const float offsetWithEnemy = Elite::GetOrientationFromVelocity(info.Location - agentInfo.Position) - agentInfo.Orientation;
-	std::cout << "Offset with enemy" << abs(offsetWithEnemy)
-		<< "Angle: " << Elite::GetOrientationFromVelocity(info.Location - agentInfo.Position)
-		<< "Player Rotation: " << agentInfo.Orientation << std::endl;
+
+	steering.AutoOrient = false;
+	
+	steering.AngularVelocity = offsetWithEnemy < 0 ? -pCharacter->GetAgentInfo().MaxAngularSpeed : pCharacter->GetAgentInfo().MaxAngularSpeed;
 
 	float maxAngleOffset;
 	if (Elite::DistanceSquared(agentInfo.Position, info.Location) < smallAngle * smallAngle)
@@ -76,7 +74,7 @@ bool ShootAtEnemy::ExecuteAction(float dt, Character* pCharacter)
 	pCharacter->GetInterface()->Draw_Direction(
 		pCharacter->GetAgentInfo().Position, dir, dir.Normalize(), Elite::Vector3{ 0,1,0 }, 0.9f);
 
-	pCharacter->GetInterface()->Draw_Circle(pCharacter->GetAgentInfo().Position, personalSpace, Elite::Vector3{ 1.f, 0.f, 0.f });
+	pCharacter->GetInterface()->Draw_Circle(pCharacter->GetAgentInfo().Position, personalSpace, Elite::Vector3{ 1.f, 0.05f, 0.f });
 	pCharacter->GetInterface()->Draw_Circle(pCharacter->GetAgentInfo().Position, smallAngle, Elite::Vector3{ 1.f, 0.333f, 0.f });
 	pCharacter->GetInterface()->Draw_Circle(pCharacter->GetAgentInfo().Position, mediumAngle, Elite::Vector3{ 1.f, 0.666f, 0.f });
 	pCharacter->GetInterface()->Draw_Circle(pCharacter->GetAgentInfo().Position, pCharacter->GetAgentInfo().FOV_Range, Elite::Vector3{ 1.f, 1.f, 0.f });
@@ -92,16 +90,17 @@ bool ShootAtEnemy::ExecuteAction(float dt, Character* pCharacter)
 #endif
 	if(abs(offsetWithEnemy) < maxAngleOffset)
 	{
-		const auto index = pCharacter->GetIndexForType(eItemType::PISTOL);
+		m_CurrentWeaponIndex = pCharacter->GetIndexForType(eItemType::PISTOL);
 		ItemInfo itemInfo{};
 		
-		pCharacter->GetInterface()->Inventory_UseItem(index);
-		std::cout << "SHOT!";
+		pCharacter->GetInterface()->Inventory_UseItem(m_CurrentWeaponIndex);
 		
-		pCharacter->GetInterface()->Inventory_GetItem(index, itemInfo);
+		pCharacter->GetInterface()->Inventory_GetItem(m_CurrentWeaponIndex, itemInfo);
 		if(pCharacter->GetInterface()->Weapon_GetAmmo(itemInfo) <= 0)
 		{
-			pCharacter->RemoveItemFromInventory(index);
+			pCharacter->RemoveItemFromInventory(m_CurrentWeaponIndex);
+			if (pCharacter->HasItemOfType(eItemType::PISTOL))
+				m_CurrentWeaponIndex = pCharacter->GetIndexForType(eItemType::PISTOL);
 			
 			pCharacter->ChangeCharacterState("HasWeapon", pCharacter->HasItemOfType(eItemType::PISTOL));
 			return false;
@@ -116,7 +115,7 @@ bool ShootAtEnemy::ExecuteAction(float dt, Character* pCharacter)
 
 bool ShootAtEnemy::IsDone(Character* pCharacter)
 {
-	return true;
+	return false;
 }
 
 bool ShootAtEnemy::RequiresInRange() const

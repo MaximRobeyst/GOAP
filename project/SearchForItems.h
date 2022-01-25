@@ -17,11 +17,15 @@ public:
 	bool IsInRange(Character* pBlackboard) const override;
 	virtual std::string GetName() const override { return "Search for items"; };
 private:
-	float m_Range{ 10.f };
+	void RotateAgent(Character* pCharacter);
+	
+	const float m_Range{ 10.f };
 	Elite::Vector2 m_CurrentTarget{};
 
 	float m_Timer{};
+	float m_WasAttackedTimer{};
 	float m_Patience{ 30.f };
+	float m_WasAttackTimerMax{ 2.5f };
 
 	void GenerateNewTarget(const WorldInfo& worldInfo);
 };
