@@ -5,6 +5,8 @@
 #include <Exam_HelperStructs.h>
 #include <IExamInterface.h>
 
+#include "Helpers.h"
+
 EnterHouse::EnterHouse()
 {
 	m_Preconditions["EnemyChasing"] = true;
@@ -13,6 +15,7 @@ EnterHouse::EnterHouse()
 	m_Preconditions["HasHouseTarget"] = true;
 	m_Preconditions["ItemInFov"] = false;
 	m_Preconditions["InPurgeZone"] = false;
+	m_Preconditions["InventoryFull"] = false;
 	//m_Preconditions["InHouse"] = false;
 
 	m_Effects["InHouse"] = true;
@@ -30,6 +33,9 @@ EnterHouse::EnterHouse(const std::map<std::string, bool>& preConditions, const s
 
 bool EnterHouse::CheckProceduralPreconditions(Character* pCharacter) const
 {
+	if (pCharacter->GetConditions()["HasWeapon"] && pCharacter->GetConditions()["EnemyInFov"])
+		return false;
+	
 	auto houseInfo = pCharacter->GetCurrentHouseTarget();
 
 	// if house has been entered recently don't enter it again
@@ -37,14 +43,10 @@ bool EnterHouse::CheckProceduralPreconditions(Character* pCharacter) const
 	{
 		auto enteredHouses = pCharacter->GetEnteredHouses();
 
-		if (find_if(enteredHouses.begin(), enteredHouses.end(), [&](Elite::Vector2 v)
-			{
-				return v == houseInfo.Center;
-			}) != enteredHouses.end())
+		if (find_if(enteredHouses.begin(), enteredHouses.end(), SameLocation(pCharacter->GetAgentInfo().Position)) != enteredHouses.end())
 		{
 			return false;
 		}
-
 	}
 	return true;
 }
@@ -71,20 +73,9 @@ bool EnterHouse::ExecuteAction(float dt, Character* pCharacter)
 
 bool EnterHouse::IsDone(Character* pCharacter)
 {
-	//if(!IsInRange(pCharacter))
-	//	return false;
-	//
-	//auto steering = pCharacter->GetSteeringOutput();
-	//steering.AutoOrient = true;
-	//pCharacter->SetSteeringOutput(steering);
-	//
-	//return true;
-
-	auto entitiesInFov = pCharacter->GetEntitiesInFOV();
-	if(std::find_if(entitiesInFov.begin(), entitiesInFov.end(), [](EntityInfo info)
-		{
-			return info.Type == eEntityType::ITEM;
-		}) != entitiesInFov.end())
+	const auto entitiesInFov = pCharacter->GetEntitiesInFOV();
+	const auto item = std::find_if(entitiesInFov.begin(), entitiesInFov.end(), IsType<EntityInfo, eEntityType>(eEntityType::ITEM));
+	if(item != entitiesInFov.end())
 	{
 		pCharacter->AddEnteredHouse(pCharacter->GetCurrentHouseTarget().Center);
 		pCharacter->ChangeCharacterState("HasHouseTarget", false);
@@ -92,7 +83,7 @@ bool EnterHouse::IsDone(Character* pCharacter)
 		pCharacter->ChangeCharacterState("InHouse", true);
 	}
 
-	return IsInRange(pCharacter) || !pCharacter->GetEntitiesInFOV().empty();
+	return IsInRange(pCharacter) || item != entitiesInFov.end();
 }
 
 bool EnterHouse::RequiresInRange() const

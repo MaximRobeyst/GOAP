@@ -14,14 +14,26 @@ PatrolForEnemies::PatrolForEnemies()
 	m_Preconditions["OutsideBoundries"] = false;
 
 	m_Effects["Survive"] = true;
-	m_Effects["EnemiesInFov"] = true;
-	m_Effects["HasWeapon"] = true;
+	m_Effects["EnemyInFov"] = true;
 
 	m_Cost = 7.5f;
 }
 
+PatrolForEnemies::PatrolForEnemies(const std::map<std::string, bool>& preConditions,
+	const std::map<std::string, bool>& effects, float cost)
+	:Action(preConditions, effects, cost)
+{
+}
+
 bool PatrolForEnemies::CheckProceduralPreconditions(Character* pCharacter) const
 {
+
+	if (pCharacter->GetConditions()["HasFood"] && pCharacter->GetConditions()["EnergyLow"])	// if these 2 values are true at the same time we want to heal
+		return false;
+	
+	if (pCharacter->GetConditions()["HasMedkit"] && pCharacter->GetConditions()["HealthLow"])	// if these 2 values are true at the same time we want to heal
+		return false;
+	
 	return true;
 }
 

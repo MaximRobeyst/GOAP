@@ -53,17 +53,34 @@ Character::Character(IExamInterface* pInterface)
 	m_pActions.push_back(new SearchForItems(
 		std::map<std::string, bool> 
 		{
-			{"FoodLow", true},
+			{"EnergyLow", true},
 			{"HasFood", false},
 		},
 		std::map<std::string, bool> 
 		{
-			{"FoodLow", false},
+			{"EnergyLow", false},
 			{"HasFood", true},
 			{"Survive", true}
 		},
 		15.f
 		));
+
+	// When we dont have a weapon we want a custom type of search for items
+	//m_pActions.push_back(new SearchForItems(
+	//	std::map<std::string, bool>
+	//	{
+	//		{"HasWeapon", false },
+	//		{"HasFood", true },
+	//		{"HasMedkit", true}
+	//	},
+	//	std::map<std::string, bool>
+	//	{
+	//		{"HasWeapon", true},
+	//		{ "HasFood", true },
+	//		{ "Survive", true }
+	//	},
+	//		15.f
+	//			));
 	//m_pActions.push_back(new CheckArea());
 
 	
@@ -83,6 +100,8 @@ Character::Character(IExamInterface* pInterface)
 	m_WorldConditions["HasItemTarget"] = false;
 	m_WorldConditions["PurgeZoneInFov"] = false;
 	m_WorldConditions["InPurgeZone"] = false;
+	m_WorldConditions["HasFood"] = false;
+	m_WorldConditions["EnergyLow"] = false;
 	
 	// Set Character goals
 	m_Goals["Survive"] = true;
@@ -170,9 +189,11 @@ void Character::Update(float dt)
 	}
 	else
 	{
-		m_WorldConditions["InHouse"] = false;
 		m_WorldConditions["HouseInFov"] = false;
 	}
+
+
+	m_WorldConditions["InHouse"] = m_AgentInfo.IsInHouse;
 
 	const auto itemTarget = std::find_if(m_EntitiesInFOV.begin(), m_EntitiesInFOV.end(), IsType<EntityInfo, eEntityType>(eEntityType::ITEM));
 	m_WorldConditions["ItemInFov"] = itemTarget != m_EntitiesInFOV.end();
@@ -190,7 +211,9 @@ void Character::Update(float dt)
 			}
 		}
 	}
-	m_WorldConditions["HasItemTarget"] = m_CurrentItemTarget != Elite::Vector2{} && !m_WorldConditions["InventoryFull"];
+	m_WorldConditions["HasItemTarget"] = m_CurrentItemTarget != Elite::Vector2{};
+	if (m_WorldConditions["HasFood"] && m_WorldConditions["HasWeapon"] && m_WorldConditions["HasMedkit"])
+		m_WorldConditions["HasItemTarget"] = false;
 
 	std::for_each(m_ItemMemory.begin(), m_ItemMemory.end(), [this](const Elite::Vector2& v)
 		{

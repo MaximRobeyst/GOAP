@@ -7,12 +7,18 @@
 MoveBackInBoundaries::MoveBackInBoundaries()
 {
 	m_Preconditions["OutsideBoundries"] = true;
-	m_Preconditions["InHouse"] = false;
+	//Oum_Preconditions["InHouse"] = false;
 
 	m_Effects["OutsideBoundries"] = false;
 	m_Effects["Survive"] = true;
 
 	m_Cost = 1.f;
+}
+
+MoveBackInBoundaries::MoveBackInBoundaries(const std::map<std::string, bool>& preConditions,
+	const std::map<std::string, bool>& effects, float cost)
+	:Action(preConditions, effects, cost)
+{
 }
 
 bool MoveBackInBoundaries::CheckProceduralPreconditions(Character* pCharacter) const
@@ -27,7 +33,7 @@ bool MoveBackInBoundaries::ExecuteAction(float dt, Character* pCharacter)
 
 bool MoveBackInBoundaries::IsDone(Character* pCharacter)
 {
-	return true;
+	return false;
 }
 
 bool MoveBackInBoundaries::RequiresInRange() const

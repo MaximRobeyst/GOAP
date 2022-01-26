@@ -66,6 +66,9 @@
     <ClCompile Include="NeedsGun.cpp">
       <Filter>GOAP\Actions</Filter>
     </ClCompile>
+    <ClCompile Include="NeedsMedkit.cpp">
+      <Filter>GOAP\Actions</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Plugin.h" />
@@ -137,6 +140,9 @@
       <Filter>GOAP\Actions</Filter>
     </ClInclude>
     <ClInclude Include="NeedsGun.h">
+      <Filter>GOAP\Actions</Filter>
+    </ClInclude>
+    <ClInclude Include="NeedsMedkit.h">
       <Filter>GOAP\Actions</Filter>
     </ClInclude>
   </ItemGroup>

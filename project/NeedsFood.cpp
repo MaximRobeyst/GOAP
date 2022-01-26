@@ -8,12 +8,19 @@
 NeedsFood::NeedsFood()
 {
 	m_Preconditions["InventoryFull"] = true;
-	m_Preconditions["EnergyLow"] = true;
+	//m_Preconditions["EnergyLow"] = true;
 	m_Preconditions["HasFood"] = false;
+	m_Preconditions["HasItemTarget"] = true;
 
 	m_Effects["Survive"] = true;
 
 	m_Cost = 2.5f;
+}
+
+NeedsFood::NeedsFood(const std::map<std::string, bool>& preConditions, const std::map<std::string, bool>& effects,
+	float cost)
+	:Action(preConditions, effects, cost)
+{
 }
 
 bool NeedsFood::CheckProceduralPreconditions(Character* pCharacter) const
@@ -33,6 +40,8 @@ bool NeedsFood::ExecuteAction(float dt, Character* pCharacter)
 	steering.AutoOrient = true;
 
 	const auto iter = std::find_if(entityInFov.begin(), entityInFov.end(), SameLocation{ info });
+	if (iter == entityInFov.end())
+		return false;
 
 	pCharacter->GetInterface()->Item_GetInfo(*iter, itemInfo);
 
@@ -73,7 +82,7 @@ bool NeedsFood::ExecuteAction(float dt, Character* pCharacter)
 
 bool NeedsFood::IsDone(Character* pCharacter)
 {
-	return false;
+	return m_FoodAdded;
 }
 
 bool NeedsFood::RequiresInRange() const
@@ -83,10 +92,17 @@ bool NeedsFood::RequiresInRange() const
 
 bool NeedsFood::IsInRange(Character* pCharacter) const
 {
-	return false;
+	const float distanceSquared = Elite::DistanceSquared(pCharacter->GetAgentInfo().Position, pCharacter->GetCurrentItemTarget());
+
+	return distanceSquared < (pCharacter->GetAgentInfo().GrabRange* pCharacter->GetAgentInfo().GrabRange);
 }
 
 std::string NeedsFood::GetName() const
 {
 	return "Pick up food";
+}
+
+Elite::Vector2 NeedsFood::GetTarget(Character* pCharacter)
+{
+	return pCharacter->GetCurrentItemTarget();
 }

@@ -13,7 +13,7 @@ PickupItem::PickupItem()
 	//m_Preconditions["ItemInFov"] = true;
 	m_Preconditions["InventoryFull"] = false;
 	m_Preconditions["HasItemTarget"] = true;
-	m_Preconditions["EnergyLow"] = false;
+	//m_Preconditions["EnergyLow"] = false;
 	m_Preconditions["InPurgeZone"] = false;
 
 	m_Effects["Survive"] = true;
@@ -21,11 +21,19 @@ PickupItem::PickupItem()
 	m_Cost = 0.5f;
 }
 
+PickupItem::PickupItem(const std::map<std::string, bool>& preConditions, const std::map<std::string, bool>& effects,
+	float cost)
+	: Action(preConditions, effects, cost)
+{
+}
+
 bool PickupItem::CheckProceduralPreconditions(Character* pCharacter) const
 {
 	if (pCharacter->GetConditions()["HealthLow"] && pCharacter->GetConditions()["HasMedkit"])
 		return false;
 	if (pCharacter->GetConditions()["EnergyLow"] && pCharacter->GetConditions()["HasFood"])
+		return false;
+	if (pCharacter->GetConditions()["EnemyInFov"] && pCharacter->GetConditions()["HasWeapon"])
 		return false;
 	
 	return true;
@@ -42,6 +50,12 @@ bool PickupItem::ExecuteAction(float dt, Character* pCharacter)
 	auto steering = pCharacter->GetSteeringOutput();
 	steering.AutoOrient = true;
 
+	if(m_KeepItemTargetTimer >= m_KeepItemTargetTimerMax)
+	{
+		m_KeepItemTargetTimer = 0.f;
+		pCharacter->PopItemFromMemory();
+	}
+
 	const auto iter = std::find_if(entityInFov.begin(), entityInFov.end(), SameLocation{info});
 	
 	if (IsInRange(pCharacter) && iter != entityInFov.end())
@@ -51,6 +65,7 @@ bool PickupItem::ExecuteAction(float dt, Character* pCharacter)
 			steering.LinearVelocity = { iter->Location - pCharacter->GetAgentInfo().Position };
 			steering.LinearVelocity.Normalize();
 			steering.LinearVelocity *= pCharacter->GetAgentInfo().MaxLinearSpeed;
+			m_KeepItemTargetTimer += dt;
 		}
 		else
 		{

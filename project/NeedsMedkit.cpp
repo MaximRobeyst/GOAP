@@ -1,5 +1,5 @@
 #include "stdafx.h"
-#include "NeedsGun.h"
+#include "NeedsMedkit.h"
 #include "Character.h"
 
 #include <Exam_HelperStructs.h>
@@ -7,10 +7,11 @@
 
 #include "Helpers.h"
 
-NeedsGun::NeedsGun()
+NeedsMedkit::NeedsMedkit()
 {
 	m_Preconditions["InventoryFull"] = true;
-	m_Preconditions["HasWeapon"] = false;
+	//m_Preconditions["EnergyLow"] = true;
+	m_Preconditions["HasMedkit"] = false;
 	m_Preconditions["HasItemTarget"] = true;
 
 	m_Effects["Survive"] = true;
@@ -18,18 +19,12 @@ NeedsGun::NeedsGun()
 	m_Cost = 2.5f;
 }
 
-NeedsGun::NeedsGun(const std::map<std::string, bool>& preConditions, const std::map<std::string, bool>& effects,
-	float cost)
-	:Action(preConditions, effects, cost)
-{
-}
-
-bool NeedsGun::CheckProceduralPreconditions(Character* pCharacter) const
+bool NeedsMedkit::CheckProceduralPreconditions(Character* pCharacter) const
 {
 	return true;
 }
 
-bool NeedsGun::ExecuteAction(float dt, Character* pCharacter)
+bool NeedsMedkit::ExecuteAction(float dt, Character* pCharacter)
 {
 	auto itemMemory = pCharacter->GetItemMemory();
 	const auto entityInFov = pCharacter->GetEntitiesInFOV();
@@ -41,19 +36,18 @@ bool NeedsGun::ExecuteAction(float dt, Character* pCharacter)
 	steering.AutoOrient = true;
 
 	const auto iter = std::find_if(entityInFov.begin(), entityInFov.end(), SameLocation{ info });
-
 	if (iter == entityInFov.end())
 		return false;
-	
+
 	pCharacter->GetInterface()->Item_GetInfo(*iter, itemInfo);
 
-	if (pCharacter->HasAmountOfType(eItemType::FOOD) > pCharacter->HasAmountOfType(eItemType::MEDKIT))
+	if (pCharacter->HasAmountOfType(eItemType::FOOD) > pCharacter->HasAmountOfType(eItemType::PISTOL))
 		pCharacter->RemoveItemFromInventory(pCharacter->GetIndexForType(eItemType::FOOD));
 	else
-		pCharacter->RemoveItemFromInventory(pCharacter->GetIndexForType(eItemType::MEDKIT));
+		pCharacter->RemoveItemFromInventory(pCharacter->GetIndexForType(eItemType::PISTOL));
 
 
-	if (IsInRange(pCharacter) && iter != entityInFov.end() && itemInfo.Type == eItemType::FOOD)
+	if (IsInRange(pCharacter) && iter != entityInFov.end() && itemInfo.Type == eItemType::MEDKIT)
 	{
 		if (Elite::DistanceSquared(pCharacter->GetAgentInfo().Position, pCharacter->GetCurrentItemTarget()) < (m_TooCloseRange * m_TooCloseRange))
 		{
@@ -65,11 +59,11 @@ bool NeedsGun::ExecuteAction(float dt, Character* pCharacter)
 		{
 			if (pCharacter->GetInterface()->Item_Grab(*iter, itemInfo))
 			{
-				m_GunAdded = pCharacter->GetInterface()->Inventory_AddItem(pCharacter->GetSlot(), itemInfo);
-				if (m_GunAdded)
+				m_MedkitAdded = pCharacter->GetInterface()->Inventory_AddItem(pCharacter->GetSlot(), itemInfo);
+				if (m_MedkitAdded)
 				{
 					pCharacter->PopItemFromMemory();
-					pCharacter->ChangeCharacterState("HasWeapon", true);
+					pCharacter->ChangeCharacterState("HasMedkit", true);
 				}
 
 				pCharacter->SetSlot(pCharacter->GetSlot() + 1);
@@ -81,30 +75,29 @@ bool NeedsGun::ExecuteAction(float dt, Character* pCharacter)
 	return true;
 }
 
-bool NeedsGun::IsDone(Character* pCharacter)
+bool NeedsMedkit::IsDone(Character* pCharacter)
 {
-	return m_GunAdded;
+	return m_MedkitAdded;
 }
 
-bool NeedsGun::RequiresInRange() const
+bool NeedsMedkit::RequiresInRange() const
 {
 	return true;
 }
 
-bool NeedsGun::IsInRange(Character* pCharacter) const
+bool NeedsMedkit::IsInRange(Character* pCharacter) const
 {
 	const float distanceSquared = Elite::DistanceSquared(pCharacter->GetAgentInfo().Position, pCharacter->GetCurrentItemTarget());
 
 	return distanceSquared < (pCharacter->GetAgentInfo().GrabRange* pCharacter->GetAgentInfo().GrabRange);
 }
 
-std::string NeedsGun::GetName() const
+std::string NeedsMedkit::GetName() const
 {
-	return "Pick up gun";
+	return "Get Medkit";
 }
 
-Elite::Vector2 NeedsGun::GetTarget(Character* pCharacter)
+Elite::Vector2 NeedsMedkit::GetTarget(Character* pCharacter)
 {
 	return pCharacter->GetCurrentItemTarget();
 }
-

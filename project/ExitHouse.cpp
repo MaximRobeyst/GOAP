@@ -13,10 +13,10 @@ ExitHouse::ExitHouse()
 	m_Preconditions["InHouse"] = true;
 	m_Preconditions["WasBitten"] = false;
 	m_Preconditions["EnemyInFov"] = false;
+	m_Preconditions["InPurgeZone"] = false;
 
 	m_Effects["Survive"] = true;
 	m_Effects["InHouse"] = false;
-	m_Effects["HouseInFov"] = true;
 
 	m_Cost = 10.0f;
 }
@@ -77,6 +77,7 @@ Elite::Vector2 ExitHouse::GetTarget(Character* pCharacter)
 
 void ExitHouse::MoveTowardsExit(Character* pCharacter)
 {
+	m_Index = 0;
 	auto steering = pCharacter->GetSteeringOutput();
 
 	if (steering.LinearVelocity.SqrtMagnitude() < 0.25f)

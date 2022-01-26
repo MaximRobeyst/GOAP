@@ -14,6 +14,12 @@ LookBehindForEnemies::LookBehindForEnemies()
 	m_Cost = 5.f;
 }
 
+LookBehindForEnemies::LookBehindForEnemies(const std::map<std::string, bool>& preConditions,
+	const std::map<std::string, bool>& effects, float cost)
+	:Action(preConditions, effects, cost)
+{
+}
+
 bool LookBehindForEnemies::CheckProceduralPreconditions(Character* pCharacter) const
 {
 	return true;

@@ -15,6 +15,12 @@ UseMedkit::UseMedkit()
 	m_Cost = 1.5f;
 }
 
+UseMedkit::UseMedkit(const std::map<std::string, bool>& preConditions, const std::map<std::string, bool>& effects,
+	float cost)
+	:Action(preConditions, effects, cost)
+{
+}
+
 bool UseMedkit::CheckProceduralPreconditions(Character* pCharacter) const
 {
 	return true;

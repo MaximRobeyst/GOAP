@@ -1,10 +1,13 @@
 #pragma once
 #include "ConditionsAndActions.h"
 
+struct PurgeZoneInfo;
+
 class EscapePurgeZone final : public Action
 {
 public:
 	EscapePurgeZone();
+	EscapePurgeZone(const std::map<std::string, bool>& preConditions, const std::map<std::string, bool>& effects, float cost);
 
 	bool CheckProceduralPreconditions(Character* pCharacter) const override;
 	bool ExecuteAction(float dt, Character* pCharacter) override;
@@ -13,5 +16,11 @@ public:
 	bool IsInRange(Character* pCharacter) const override;
 	std::string GetName() const override;
 	Elite::Vector2 GetTarget(Character* pCharacter) override;
+
+private:
+	Elite::Vector2 RandomPointInsideCirlce(Character* pCharacter, const PurgeZoneInfo& purgezoneInfo) const;
+	
+	Elite::Vector2 m_CurrentTarget{};
+	
 };
 

@@ -67,6 +67,12 @@ struct SameLocation
 		return lhs.Location == rhs;
 	}
 
+	bool operator()(const HouseInfo& lhs) const
+	{
+		return lhs.Center == rhs;
+	}
+
+
 	bool operator() (const Elite::Vector2& lhs) const
 	{
 		return lhs == rhs;

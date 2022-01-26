@@ -92,3 +92,6 @@ project/_Temp/Release/MoveBackInBoundaries.obj
 project/_Temp/Debug/PatrolForEnemies.obj
 project/_Temp/Debug/NeedsFood.obj
 project/_Temp/Debug/MoveBackInBoundaries.obj
+project/_Temp/Debug/NeedsGun.obj
+project/_Temp/Debug/NeedsMedkit.obj
+project/_Temp/Release/NeedsMedkit.obj

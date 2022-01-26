@@ -10,11 +10,17 @@ UseFood::UseFood()
 	m_Preconditions["HasFood"] = true;
 	m_Preconditions["EnergyLow"] = true;
 
-	m_Effects["Energylow"] = false;
+	m_Effects["EnergyLow"] = false;
 	m_Effects["HasFood"] = false;
 	m_Effects["Survive"] = true;
 
 	m_Cost = 1.5f;
+}
+
+UseFood::UseFood(const std::map<std::string, bool>& preConditions, const std::map<std::string, bool>& effects,
+	float cost)
+	:Action(preConditions, effects, cost)
+{
 }
 
 bool UseFood::CheckProceduralPreconditions(Character* pCharacter) const

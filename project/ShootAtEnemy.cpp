@@ -60,8 +60,6 @@ bool ShootAtEnemy::ExecuteAction(float dt, Character* pCharacter)
 	else
 		maxAngleOffset = 0.069f;
 
-	
-#ifdef _DEBUG
 
 	std::for_each(entityList.begin(), entityList.end(), [agentInfo, pCharacter](const EntityInfo& info)
 		{
@@ -87,7 +85,6 @@ bool ShootAtEnemy::ExecuteAction(float dt, Character* pCharacter)
 		0.9f
 	);
 	
-#endif
 	if(abs(offsetWithEnemy) < maxAngleOffset)
 	{
 		m_CurrentWeaponIndex = pCharacter->GetIndexForType(eItemType::PISTOL);

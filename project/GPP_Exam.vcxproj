@@ -196,6 +196,7 @@
     <ClInclude Include="MoveBackInBoundaries.h" />
     <ClInclude Include="NeedsFood.h" />
     <ClInclude Include="NeedsGun.h" />
+    <ClInclude Include="NeedsMedkit.h" />
     <ClInclude Include="PatrolForEnemies.h" />
     <ClInclude Include="PickupClass.h" />
     <ClInclude Include="Planner.h" />
@@ -221,6 +222,7 @@
     <ClCompile Include="MoveBackInBoundaries.cpp" />
     <ClCompile Include="NeedsFood.cpp" />
     <ClCompile Include="NeedsGun.cpp" />
+    <ClCompile Include="NeedsMedkit.cpp" />
     <ClCompile Include="PatrolForEnemies.cpp" />
     <ClCompile Include="PickupClass.cpp" />
     <ClCompile Include="Planner.cpp" />

@@ -5,6 +5,7 @@ class NeedsFood final : public Action
 {
 public:
 	NeedsFood();
+	NeedsFood(const std::map<std::string, bool>& preConditions, const std::map<std::string, bool>& effects, float cost);
 	
 	bool CheckProceduralPreconditions(Character* pCharacter) const override;
 	bool ExecuteAction(float dt, Character* pCharacter) override;
@@ -12,6 +13,7 @@ public:
 	bool RequiresInRange() const override;
 	bool IsInRange(Character* pCharacter) const override;
 	std::string GetName() const override;
+	Elite::Vector2 GetTarget(Character* pCharacter) override;
 
 public:
 	float m_TooCloseRange{ 1.f };

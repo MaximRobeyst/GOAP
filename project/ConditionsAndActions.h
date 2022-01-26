@@ -31,6 +31,5 @@ protected:
 	std::map<std::string, bool> m_Preconditions;	// conditions the world has to be in for the action to be executed
 	std::map<std::string, bool> m_Effects;			// the effect this action will have on the world
 	float m_Cost{};								// cost of the action
-	//bool m_InRange{};							// is the character in range for this action to be performed (COMMENTED: for now because i dont know if i'll need this)
 };
 
