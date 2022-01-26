@@ -16,9 +16,7 @@ public:
 	~Character();
 
 	void Update(float dt);
-
-	void AddAction(Action* action);
-
+	
 	std::vector<Action*> GetPlan() const;
 	std::vector<Action*> GetActions() const;
 	Action* GetCurrentAction() const;

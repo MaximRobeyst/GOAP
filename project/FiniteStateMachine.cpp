@@ -43,20 +43,12 @@ void FiniteStateMachine::Update(float deltaTime, Character* pBlackboard)
 
 void FiniteStateMachine::ChangeState(FSMState* newState)
 {
-	if (newState != m_pCurrentState)
-		newState->OnEnter();
-	
 	m_pCurrentState = newState;
 }
 
 ActionState::ActionState(Character* pCharacter)
 	: m_pCharacter{pCharacter}
 {
-}
-
-void ActionState::OnEnter()
-{
-	//std::cout << "Entered Action State" << std::endl;
 }
 
 void ActionState::Update(float deltaTime, Character* pCharacter)
@@ -96,9 +88,10 @@ Planner* ActionState::GetPlanner() const
 
 void ActionState::GenerateNewPlan(Character* pCharacter)
 {
-	//m_pCharacter->PrintWorldStates();
-	
 	m_pCurrentPlan = m_pPlanner->GetPlan(m_pCharacter->GetActions(), m_pCharacter->GetConditions(), m_pCharacter->GetGoals(), pCharacter);
+	if (m_pCurrentPlan.empty())
+		return;
+	
 	m_pCurrentAction = m_pCurrentPlan[0];
 	std::cout << "New Plan: ";
 	for_each(m_pCurrentPlan.begin(), m_pCurrentPlan.end(), [](Action* action)
@@ -106,11 +99,6 @@ void ActionState::GenerateNewPlan(Character* pCharacter)
 			std::cout << action->GetName() << " -> ";
 		});
 	std::cout << std::endl;
-}
-
-void MoveState::OnEnter()
-{
-	//std::cout << "Entered move state" << std::endl;
 }
 
 void MoveState::Update(float deltaTime, Character* pCharacter)
@@ -130,10 +118,6 @@ void MoveState::Update(float deltaTime, Character* pCharacter)
 
 	pCharacter->SetAgentInfo(agentInfo);
 	pCharacter->SetSteeringOutput(steering);
-	
-	//std::cout << "===== Current state =====" << std::endl;
-	//std::cout << " Move State " << std::endl;
-	
 }
 
 bool ToMoveTransition::ToTransition(Character* pCharacter) const
@@ -150,5 +134,6 @@ bool ToActionTransition::ToTransition(Character* pCharacter) const
 	if (pCharacter->GetCurrentAction() == nullptr)
 		return false;
 
-	return pCharacter->GetCurrentAction()->IsInRange(pCharacter) || pCharacter->GetCurrentAction()->IsDone(pCharacter) || !pCharacter->GetPlanner()->IsPlanValid(pCharacter->GetCurrentAction(), pCharacter->GetConditions(), pCharacter);
+	return pCharacter->GetCurrentAction()->IsInRange(pCharacter) || pCharacter->GetCurrentAction()->IsDone(pCharacter) ||
+		!pCharacter->GetPlanner()->IsPlanValid(pCharacter->GetCurrentAction(), pCharacter->GetConditions(), pCharacter);
 }

@@ -10,13 +10,10 @@
 EnterHouse::EnterHouse()
 {
 	m_Preconditions["EnemyChasing"] = true;
-	//m_Preconditions["HouseInFov"] = true;
-	//m_Preconditions["HasWeapon"] = false;
 	m_Preconditions["HasHouseTarget"] = true;
 	m_Preconditions["ItemInFov"] = false;
 	m_Preconditions["InPurgeZone"] = false;
 	m_Preconditions["InventoryFull"] = false;
-	//m_Preconditions["InHouse"] = false;
 
 	m_Effects["InHouse"] = true;
 	m_Effects["EnemyChasing"] = false;
@@ -54,8 +51,6 @@ bool EnterHouse::CheckProceduralPreconditions(Character* pCharacter) const
 bool EnterHouse::ExecuteAction(float dt, Character* pCharacter)
 {
 	GetTarget(pCharacter);
-	//HouseInfo houseInfo;
-	//houseInfo = pCharacter->GetHousesInFOV()[0];
 
 	const auto agentInfo = pCharacter->GetAgentInfo();
 	auto steering = pCharacter->GetSteeringOutput();
@@ -63,10 +58,6 @@ bool EnterHouse::ExecuteAction(float dt, Character* pCharacter)
 	steering.LinearVelocity = pCharacter->GetCurrentHouseTarget().Center - agentInfo.Position;
 	steering.LinearVelocity.Normalize();
 	steering.LinearVelocity *= -agentInfo.MaxLinearSpeed;
-
-	//steering.AutoOrient = false;
-	//steering.AngularVelocity = agentInfo.MaxAngularSpeed;
-	
 	pCharacter->SetSteeringOutput(steering);
 	return true;
 }

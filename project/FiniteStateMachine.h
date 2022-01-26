@@ -2,7 +2,6 @@
 #include <map>
 #include <vector>
 
-#include "Blackboard.h"
 #include "ConditionsAndActions.h"
 #include "Planner.h"
 
@@ -13,8 +12,7 @@ class FSMState
 public:
 	FSMState() = default;
 	virtual ~FSMState() = default;
-
-	virtual void OnEnter() {};
+	
 	virtual void Update(float deltaTime, Character* pCharacter) {};
 };
 
@@ -50,7 +48,6 @@ class ActionState : public FSMState
 public:
 	ActionState(Character* pCharacter);
 
-	void OnEnter() override;
 	void Update(float deltaTime, Character* pCharacter) override;
 	
 	Action* GetCurrentAction() const;
@@ -70,7 +67,6 @@ private:
 class MoveState : public FSMState
 {
 public:
-	void OnEnter() override;
 	void Update(float deltaTime, Character* pCharacter) override;
 };
 

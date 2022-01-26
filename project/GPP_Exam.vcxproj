@@ -182,7 +182,6 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Blackboard.h" />
     <ClInclude Include="Character.h" />
     <ClInclude Include="CheckArea.h" />
     <ClInclude Include="ConditionsAndActions.h" />

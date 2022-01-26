@@ -82,9 +82,6 @@
     <ClInclude Include="Planner.h">
       <Filter>GOAP</Filter>
     </ClInclude>
-    <ClInclude Include="Blackboard.h">
-      <Filter>GOAP</Filter>
-    </ClInclude>
     <ClInclude Include="ConditionsAndActions.h">
       <Filter>GOAP\Actions</Filter>
     </ClInclude>

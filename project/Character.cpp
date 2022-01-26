@@ -5,7 +5,6 @@
 #include "IExamInterface.h"
 
 #include "Planner.h"
-#include "Blackboard.h"
 #include "FiniteStateMachine.h"
 
 //Actions

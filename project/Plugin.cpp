@@ -2,7 +2,6 @@
 #include "Plugin.h"
 #include "IExamInterface.h"
 #include "Planner.h"
-#include "Blackboard.h"
 
 //Called only once, during initialization
 void Plugin::Initialize(IBaseInterface* pInterface, PluginInfo& info)
